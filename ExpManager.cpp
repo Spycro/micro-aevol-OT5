@@ -386,7 +386,7 @@ void ExpManager::run_a_step() {
     // Search for the best
     double best_fitness = prev_internal_organisms_[0]->fitness;
     int idx_best = 0;
-    #pragma omp parallel for 
+    #pragma omp parallel for reduction(max:best_fitness)
     for (int indiv_id = 1; indiv_id < nb_indivs_; indiv_id++) {
         if (prev_internal_organisms_[indiv_id]->fitness > best_fitness) {
             idx_best = indiv_id;
