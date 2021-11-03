@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <zlib.h>
+#include <omp.h>
 
 using namespace std;
 
@@ -37,6 +38,7 @@ using namespace std;
 
 // For time tracing
 #include "Timetracer.h"
+
 
 /**
  * Constructor for initializing a new simulation
@@ -324,11 +326,13 @@ void ExpManager::selection(int indiv_id) const {
     }
 
     auto rng = std::move(rng_->gen(indiv_id, Threefry::REPROD));
+    // choix de l'organisme qui va reproduire l'organise indiv_id (via les probas)
     int found_org = rng.roulette_random(probs, NEIGHBORHOOD_SIZE);
 
     int x_offset = (found_org / NEIGHBORHOOD_WIDTH) - 1;
     int y_offset = (found_org % NEIGHBORHOOD_HEIGHT) - 1;
 
+    // on indique qui gagne la reproduction pour l'individu actuel
     next_generation_reproducer_[indiv_id] = ((x + x_offset + grid_width_) % grid_width_) * grid_height_ +
                                             ((y + y_offset + grid_height_) % grid_height_);
 }
@@ -339,6 +343,7 @@ void ExpManager::selection(int indiv_id) const {
  * @param indiv_id : Organism unique id
  */
 void ExpManager::prepare_mutation(int indiv_id) const {
+    //generation de la rng ??
     auto *rng = new Threefry::Gen(std::move(rng_->gen(indiv_id, Threefry::MUTATION)));
     const shared_ptr<Organism> &parent = prev_internal_organisms_[next_generation_reproducer_[indiv_id]];
     dna_mutator_array_[indiv_id] = new DnaMutator(
@@ -363,7 +368,8 @@ void ExpManager::prepare_mutation(int indiv_id) const {
  */
 void ExpManager::run_a_step() {
 
-    // Running the simulation process for each organism
+    //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
+    #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         selection(indiv_id);
         prepare_mutation(indiv_id);
@@ -384,6 +390,9 @@ void ExpManager::run_a_step() {
     // Search for the best
     double best_fitness = prev_internal_organisms_[0]->fitness;
     int idx_best = 0;
+    
+    //Ce parallel for (pour l'instant) ne sert a rien
+    //#pragma omp parallel for reduction(max:best_fitness)
     for (int indiv_id = 1; indiv_id < nb_indivs_; indiv_id++) {
         if (prev_internal_organisms_[indiv_id]->fitness > best_fitness) {
             idx_best = indiv_id;
