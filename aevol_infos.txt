@@ -1,0 +1,23 @@
+Promoter : calculé 1x lors de la 1ère Gen et gardé en mémoire le rester de l’exp dans promoters_
+
+promoter_at : compare la chaîne d’un promoter connu avec la chaîne commençant dans l’adn à l’index passé en paramètre 
+et retourne le nombre de différence avec cette chaîne
+
+length(): longueur de l'adn
+
+loop_back(index) : fait en sorte que si l'index dépasse length, ça renvoie quand même une valeur < length de l'adn (length-index)
+
+locate_promoter : cherche des promoter dans toute la longueur de l'adn en appelant look_for_new_promoters_starting_between 0 et la length()
+
+look_for_new_promoters_starting_between : ajoute un promoter si la différence entre la chaîne évalué et le promoteur théorique est 
+inférieure à 4 (promoter_at)
+
+add_new_promoter : ajoute un nouveau promoteur dans promoters_s'il n'y est pas déjà avec en key l'index i de début du promoteur 
+et en value, le nombre de différence entre le promoteur commençant  l'index i et le promoteur théorique
+
+terminator_at : cherche une chaîne de terminateur à partir de l'index i passé en paramètre tel que debut = fin inversé 
+(avec 3 caractères séparateurs entre les deux) et renvoie le nombre de fois que debut != fin inversé
+
+compute_RNA : pour chaque promoter : 
+- cherche son terminater 
+- s'il l'a trouvé, l'enregistre dans un tableau de rna à un id incrémental
