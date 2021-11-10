@@ -20,4 +20,23 @@ terminator_at : cherche une chaîne de terminateur à partir de l'index i passé
 
 compute_RNA : pour chaque promoter : 
 - cherche son terminater 
-- s'il l'a trouvé, l'enregistre dans un tableau de rna à un id incrémental
+- s'il l'a trouvé, enregistre un nouvel RNA dans un tableau de rna à un id incrémental
+
+shine_dal_start : détermine si la chaîne commençant à l'indice pos passé en paramètre de taille SHINE_DAL_SIZE
+est bien la chaîne de Shine Dalgarno de l'ADN
+
+search_start_protein : détermine pour chaque RNA s'il y a des chaines de Shine_Dalgarno dedans, si c'est le cas,
+on enregistre l'index de début de la chaîne SD comme début d'une chaîne de protéine pour ce RNA
+
+compute_protein : pour chaque DNA calcule les protéines associés à ses RNA ; une protéine peut avoir plusieurs CODONS
+elle s'arrête quand on rencontre une chaîne du type PROTEIN_END ; on les enregistre dans proteins à un id incrémental
+Une protéine doit avoir au moins deux codons dont un CODON pour le STOP
+
+apply_mutations : effectue toutes les mutations sur l'organisme
+
+do_switch : switch la valeur d'un bit et supprime les promoter à cet endroit et calcule la nouvelle distance de hamming
+du promoter à cet endroit
+
+generate_mutations : génère un nombre aléatoire de mutation chez un individu (fait des do_witch sur des bits)
+
+prepare_mutation : 
