@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 project(pdc_mini_aevol)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(DO_TRACES OFF CACHE BOOL "Whether to enable the Traces library")
 set(USE_OMP OFF CACHE BOOL "Whether to enable OpenMP parallelization")
 set(USE_CUDA OFF CACHE BOOL "Whether to enable CUDA parallelization")
-set(CMAKE_CXX_FLAGS "-march=native -O2 -fopt-info-vec -fopt-info-vec-missed -fopt-info-loop-optimized -pg")
+set(CMAKE_CXX_FLAGS "-march=native -fopt-info-vec -fopt-info-vec-missed -fopt-info-loop-optimized -pg")
 
 if ( DO_TRACES )
     add_definitions(-DTRACES)
