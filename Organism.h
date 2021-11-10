@@ -66,8 +66,11 @@ public:
     void compute_protein_stats();
 
     void locate_promoters();
+    
+    void locate_terminators();
 
     void evaluate(const double* target);
+    void evaluate_naive(const double* target);
 
     // Printings
     void print_info();
@@ -104,6 +107,7 @@ public:
 
 private:
     // Evaluation
+    void computeRNA_naive();
     void compute_RNA();
     void search_start_protein();
     void compute_protein();
@@ -114,6 +118,7 @@ private:
     // Mutation
     bool do_switch(int pos);
 
+    //  Promoters
     void remove_all_promoters();
 
     void remove_promoters_around(int32_t pos);
@@ -137,6 +142,31 @@ private:
     void look_for_new_promoters_starting_before(int32_t pos);
 
     void add_new_promoter(int32_t position, int8_t error);
+
+    // Terminators
+    void remove_all_terminators();
+
+    void remove_terminators_around(int32_t pos);
+
+    void remove_terminators_around(int32_t pos_1, int32_t pos_2);
+
+    void remove_terminators_starting_between(int32_t pos_1, int32_t pos_2);
+
+    void remove_terminators_starting_after(int32_t pos);
+
+    void remove_terminators_starting_before(int32_t pos);
+
+    void look_for_new_terminators_around(int32_t pos_1, int32_t pos_2);
+
+    void look_for_new_terminators_around(int32_t pos);
+
+    void look_for_new_terminators_starting_between(int32_t pos_1, int32_t pos_2);
+
+    void look_for_new_terminators_starting_after(int32_t pos);
+
+    void look_for_new_terminators_starting_before(int32_t pos);
+
+    void add_new_terminator(int32_t position);
 
     static inline int32_t mod(int32_t a, int32_t b) {
 

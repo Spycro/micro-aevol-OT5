@@ -107,7 +107,7 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
     while (r_compare >= 0) {
         auto random_organism = std::make_shared<Organism>(init_length_dna, rng_->gen(0, Threefry::MUTATION));
         random_organism->locate_promoters();
-        random_organism->evaluate(target);
+        random_organism->evaluate_naive(target);
         internal_organisms_[0] = random_organism;
 
         r_compare = round((random_organism->metaerror - geometric_area) * 1E10) / 1E10;
@@ -417,17 +417,16 @@ void ExpManager::run_a_step() {
  */
 void ExpManager::run_evolution(int nb_gen) {
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
-
     //  TIMESTAMP(0, {
     time_tracer::timestamp_start();
     #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         internal_organisms_[indiv_id]->locate_promoters();
+        internal_organisms_[indiv_id]->locate_terminators();
         prev_internal_organisms_[indiv_id]->evaluate(target);
         prev_internal_organisms_[indiv_id]->compute_protein_stats();
     }
     time_tracer::timestamp_end(0);
-
     //  });
     FLUSH_TRACES(0)
 
@@ -439,7 +438,6 @@ void ExpManager::run_evolution(int nb_gen) {
     
     for (int gen = 0; gen < nb_gen; gen++) {
         AeTime::plusplus();
-
         TIMESTAMP(1, run_a_step();)
 
         printf("Generation %d : Best individual fitness %e\n", AeTime::time(), best_indiv->fitness);

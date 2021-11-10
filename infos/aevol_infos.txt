@@ -1,3 +1,5 @@
+cmake .. -DUSE_OMP=on -DCMAKE_BUILD_TYPE=Debug -DDO_TRACES=on
+
 Promoter : calculé 1x lors de la 1ère Gen et gardé en mémoire le rester de l’exp dans promoters_
 
 promoter_at : compare la chaîne d’un promoter connu avec la chaîne commençant dans l’adn à l’index passé en paramètre 
