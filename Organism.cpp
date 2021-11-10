@@ -148,6 +148,11 @@ void Organism::locate_promoters() {
     look_for_new_promoters_starting_between(0, length());
 }
 
+/** LOOK **/
+void Organism::locate_shine_dalgarnos() {
+    look_for_new_shine_dalgarno_starting_between(0, length());
+}
+
 /**
  * Apply all the mutation events of the organism on its DNA
  */
@@ -230,7 +235,7 @@ void Organism::compute_RNA() {
     }
 }
 
-void Organism::search_start_protein() {
+void Organism::search_start_protein_init() {
     for (int rna_idx = 0; rna_idx < rna_count_; rna_idx++) {
         const auto &rna = rnas[rna_idx];
         int c_pos = rna->begin;
@@ -246,6 +251,25 @@ void Organism::search_start_protein() {
 
                 c_pos++;
                 loop_back(c_pos);
+            }
+        }
+    }
+}
+
+void Organism::search_start_protein() {
+    for (int rna_idx = 0; rna_idx < rna_count_; rna_idx++) {
+        const auto &rna = rnas[rna_idx];
+        int c_pos = rna->begin;
+
+        if (rna->length >= PROM_SIZE) {
+            c_pos += PROM_SIZE;
+            loop_back(c_pos);
+
+            auto lb = shine_dalgarno.lower_bound(c_pos);
+            auto ub = shine_dalgarno.upper_bound(rna->end);
+
+            for (auto it = lb; lb != ub; it++) {
+                rna->start_prot.push_back(*it);
             }
         }
     }
@@ -699,6 +723,98 @@ void Organism::look_for_new_promoters_starting_before(int32_t pos) {
         if (dist <= 4) { // dist takes the hamming distance of the sequence from the consensus
             add_new_promoter(i, dist);
         }
+    }
+}
+
+
+//SHINE-DALGARNO
+void Organism::remove_shine_dalgarno_around(int32_t pos) {
+    if (dna_->length() >= SD_TO_START) {
+        remove_shine_dalgarno_starting_between(mod(pos - SD_TO_START + 1, dna_->length()),
+                                                   pos);
+    } else {
+        remove_all_shine_dalgarno();
+    }
+}
+
+void Organism::remove_shine_dalgarno_around(int32_t pos_1, int32_t pos_2) {
+    if (mod(pos_1 - pos_2, dna_->length()) >= SD_TO_START) {
+        remove_shine_dalgarno_starting_between(mod(pos_1 - SD_TO_START + 1, dna_->length()),
+                                                   pos_2);
+    } else {
+        remove_all_shine_dalgarno();
+    }
+}
+
+void Organism::look_for_new_shine_dalgarno_around(int32_t pos_1, int32_t pos_2) {
+    if (dna_->length() >= SD_TO_START) {
+        look_for_new_shine_dalgarno_starting_between(mod(pos_1 - SD_TO_START + 1, dna_->length()),
+                                                         pos_2);
+    }
+}
+
+void Organism::look_for_new_shine_dalgarno_around(int32_t pos) {
+    if (dna_->length() >= SD_TO_START) {
+        look_for_new_shine_dalgarno_starting_between(mod(pos - SD_TO_START + 1, dna_->length()),
+                                                pos);
+    }
+}
+
+void Organism::remove_all_shine_dalgarno() {
+    shine_dalgarno.clear();
+}
+
+/** REMOVE **/
+void Organism::remove_shine_dalgarno_starting_between(int32_t pos_1, int32_t pos_2) {
+    if (pos_1 > pos_2) {
+        remove_shine_dalgarno_starting_after(pos_1);
+        remove_shine_dalgarno_starting_before(pos_2);
+    } else {
+        // suppression is in [pos1, pos_2[, pos_2 is excluded
+        shine_dalgarno.erase(shine_dalgarno.lower_bound(pos_1), shine_dalgarno.upper_bound(pos_2 - 1));
+    }
+}
+
+void Organism::remove_shine_dalgarno_starting_after(int32_t pos) {
+    shine_dalgarno.erase(shine_dalgarno.lower_bound(pos), shine_dalgarno.end());
+}
+
+void Organism::remove_shine_dalgarno_starting_before(int32_t pos) {
+    // suppression is in [0, pos[, pos is excluded
+    shine_dalgarno.erase(shine_dalgarno.begin(), shine_dalgarno.upper_bound(pos - 1));
+}
+
+void Organism::add_new_shine_dalgarno(int32_t position) {
+    shine_dalgarno.insert(position);
+
+void Organism::look_for_new_shine_dalgarno_starting_between(int32_t pos_1, int32_t pos_2) {
+    // When pos_1 > pos_2, we will perform the search in 2 steps.
+    // As positions  0 and dna_->length() are equivalent, it's preferable to
+    // keep 0 for pos_1 and dna_->length() for pos_2.
+
+    if (pos_1 >= pos_2) {
+        look_for_new_shine_dalgarno_starting_after(pos_1);
+        look_for_new_shine_dalgarno_starting_before(pos_2);
+        return;
+    }
+
+    for (int32_t i = pos_1; i < pos_2; i++) {
+        if (dna_->shine_dal_start(i))
+            add_new_shine_dalgarno(i);
+    }
+}
+
+void Organism::look_for_new_shine_dalgarno_starting_after(int32_t pos) {
+    for (int32_t i = pos; i < dna_->length(); i++) {
+        if (dna_->shine_dal_start(i))
+            add_new_shine_dalgarno(i);
+    }
+}
+
+void Organism::look_for_new_shine_dalgarno_starting_before(int32_t pos) {
+    for (int32_t i = 0; i < pos; i++) {
+        if (dna_->shine_dal_start(i))
+            add_new_shine_dalgarno(i);
     }
 }
 

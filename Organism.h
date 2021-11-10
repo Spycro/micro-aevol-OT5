@@ -67,6 +67,8 @@ public:
 
     void locate_promoters();
 
+    void locate_shine_dalgarnos();
+
     void evaluate(const double* target);
 
     // Printings
@@ -76,7 +78,7 @@ public:
     // Map position (int) to Promoter
     std::map<int, ErrorType> promoters_;
 
-    std::set<int> terminators;
+    std::set<int> shine_dalgarno;
     std::vector<RNA *> rnas;
     std::vector<Protein *> proteins;
 
@@ -106,6 +108,7 @@ private:
     // Evaluation
     void compute_RNA();
     void search_start_protein();
+    void search_start_protein_init();
     void compute_protein();
     void translate_protein();
     void compute_phenotype();
@@ -137,6 +140,31 @@ private:
     void look_for_new_promoters_starting_before(int32_t pos);
 
     void add_new_promoter(int32_t position, int8_t error);
+
+    //SHINE-DALGARNO
+    void remove_all_shine_dalgarno();
+
+    void remove_shine_dalgarno_around(int32_t pos);
+
+    void remove_shine_dalgarno_around(int32_t pos_1, int32_t pos_2);
+
+    void remove_shine_dalgarno_starting_between(int32_t pos_1, int32_t pos_2);
+
+    void remove_shine_dalgarno_starting_after(int32_t pos);
+
+    void remove_shine_dalgarno_starting_before(int32_t pos);
+
+    void look_for_new_shine_dalgarno_around(int32_t pos_1, int32_t pos_2);
+
+    void look_for_new_shine_dalgarno_around(int32_t pos);
+
+    void look_for_new_shine_dalgarno_starting_between(int32_t pos_1, int32_t pos_2);
+
+    void look_for_new_shine_dalgarno_starting_after(int32_t pos);
+
+    void look_for_new_shine_dalgarno_starting_before(int32_t pos);
+
+    void add_new_shine_dalgarno(int32_t position);
 
     static inline int32_t mod(int32_t a, int32_t b) {
 
