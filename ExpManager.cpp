@@ -39,7 +39,7 @@ using namespace std;
 // For time tracing
 #include "Timetracer.h"
 
-
+static double staticTime= 0;
 /**
  * Constructor for initializing a new simulation
  *
@@ -301,26 +301,31 @@ ExpManager::~ExpManager() {
 void ExpManager::selection(int indiv_id) const {
     double local_fit_array[NEIGHBORHOOD_SIZE];
     double probs[NEIGHBORHOOD_SIZE];
-    int count = 0;
     double sum_local_fit = 0.0;
+    int count[NEIGHBORHOOD_WIDTH][NEIGHBORHOOD_HEIGHT];
 
     int32_t x = indiv_id / grid_height_;
     int32_t y = indiv_id % grid_height_;
 
-    int cur_x, cur_y;
+    int cur_x[NEIGHBORHOOD_SIZE], cur_y[NEIGHBORHOOD_SIZE];
+
+    double timing = omp_get_wtime();
 
     for (int8_t i = -1; i < NEIGHBORHOOD_WIDTH - 1; i++) {
         for (int8_t j = -1; j < NEIGHBORHOOD_HEIGHT - 1; j++) {
-            cur_x = (x + i + grid_width_) % grid_width_;
-            cur_y = (y + j + grid_height_) % grid_height_;
-
-            local_fit_array[count] = prev_internal_organisms_[cur_x * grid_width_ + cur_y]->fitness;
-            sum_local_fit += local_fit_array[count];
-
-            count++;
+            count[i+1][j+1] = (i+1)*NEIGHBORHOOD_WIDTH + j+1;
+            cur_x[count[i+1][j+1]] = (x + i + grid_width_) % grid_width_;
+            cur_y[count[i+1][j+1]] = (y + j + grid_height_) % grid_height_;
         }
     }
 
+    //#pragma omp simd reduction(+:sum_local_fit)
+    for (int8_t i = 0; i < NEIGHBORHOOD_SIZE; i++) {
+        local_fit_array[i] = prev_internal_organisms_[cur_x[i] * grid_width_ + cur_y[i]]->fitness;
+        sum_local_fit += local_fit_array[i];
+    }
+
+    //#pragma omp simd
     for (int8_t i = 0; i < NEIGHBORHOOD_SIZE; i++) {
         probs[i] = local_fit_array[i] / sum_local_fit;
     }
@@ -335,6 +340,7 @@ void ExpManager::selection(int indiv_id) const {
     // on indique qui gagne la reproduction pour l'individu actuel
     next_generation_reproducer_[indiv_id] = ((x + x_offset + grid_width_) % grid_width_) * grid_height_ +
                                             ((y + y_offset + grid_height_) % grid_height_);
+    staticTime += (omp_get_wtime() - timing);
 }
 
 /**
@@ -456,5 +462,6 @@ void ExpManager::run_evolution(int nb_gen) {
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
     }
+    cout<< "timing "<< staticTime;
     STOP_TRACER
 }
