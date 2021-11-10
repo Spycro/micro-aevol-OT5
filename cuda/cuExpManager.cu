@@ -36,6 +36,9 @@ checkCuda(cudaGetLastError());
 #endif
 
 cuExpManager::cuExpManager(const ExpManager* cpu_exp) {
+    int driverVers = 0;
+    cudaRuntimeGetVersion(&driverVers);
+    std::cout << "Initializing CUDA version :  " << driverVers << std::endl;
     grid_height_ = cpu_exp->grid_height_;
     grid_width_ = cpu_exp->grid_height_;
 
