@@ -3,24 +3,35 @@
 //
 
 #include "Dna.h"
-
+#include <string.h>
 #include <cassert>
 
-Dna::Dna(int length, Threefry::Gen &&rng) : seq_(length) {
+Dna::Dna(int length, Threefry::Gen &&rng) {
     // Generate a random genome
     for (int32_t i = 0; i < length; i++) {
-        seq_[i] = '0' + rng.random(NB_BASE);
+        seq_[i] = rng.random(NB_BASE) == 1;
     }
 }
 
 int Dna::length() const {
     return seq_.size();
 }
+char* str_reverse(const char *str, int len)
+{
+    char word[len];
+    int i;
+    for (i = 0; i <= len / 2; ++i) {
+        word[i] = str[len - i - 1];
+        word[len - i - 1] = str[i];
+    }
+    word[len] = '\0';
+    return word;
+}
 
 void Dna::save(gzFile backup_file) {
     int dna_length = length();
     gzwrite(backup_file, &dna_length, sizeof(dna_length));
-    gzwrite(backup_file, seq_.data(), dna_length * sizeof(seq_[0]));
+    gzwrite(backup_file, str_reverse(seq_.to_string().c_str(),seq_.size()), dna_length * sizeof(seq_[0]));
 }
 
 void Dna::load(gzFile backup_file) {
@@ -30,97 +41,20 @@ void Dna::load(gzFile backup_file) {
     char tmp_seq[dna_length];
     gzread(backup_file, tmp_seq, dna_length * sizeof(tmp_seq[0]));
 
-    seq_ = std::vector<char>(tmp_seq, tmp_seq + dna_length);
+    std::bitset<5000> loadedBitset{tmp_seq};
+    seq_ = loadedBitset;
 }
 
-void Dna::set(int pos, char c) {
+void Dna::set(int pos, bool c) {
     seq_[pos] = c;
 }
 
-/**
- * Remove the DNA inbetween pos_1 and pos_2
- *
- * @param pos_1
- * @param pos_2
- */
-void Dna::remove(int pos_1, int pos_2) {
-    assert(pos_1 >= 0 && pos_2 >= pos_1 && pos_2 <= seq_.size());
-    seq_.erase(seq_.begin() + pos_1, seq_.begin() + pos_2);
-}
 
-/**
- * Insert a sequence of a given length at a given position into the DNA of the Organism
- *
- * @param pos : where to insert the sequence
- * @param seq : the sequence itself
- * @param seq_length : the size of the sequence
- */
-void Dna::insert(int pos, std::vector<char> seq) {
-// Insert sequence 'seq' at position 'pos'
-    assert(pos >= 0 && pos < seq_.size());
-
-    seq_.insert(seq_.begin() + pos, seq.begin(), seq.end());
-}
-
-/**
- * Insert a sequence of a given length at a given position into the DNA of the Organism
- *
- * @param pos : where to insert the sequence
- * @param seq : the sequence itself
- * @param seq_length : the size of the sequence
- */
-void Dna::insert(int pos, Dna *seq) {
-// Insert sequence 'seq' at position 'pos'
-    assert(pos >= 0 && pos < seq_.size());
-
-    seq_.insert(seq_.begin() + pos, seq->seq_.begin(), seq->seq_.end());
-}
 
 void Dna::do_switch(int pos) {
-    if (seq_[pos] == '0') seq_[pos] = '1';
-    else seq_[pos] = '0';
+    seq_.flip(pos);
 }
 
-void Dna::do_duplication(int pos_1, int pos_2, int pos_3) {
-    // Duplicate segment [pos_1; pos_2[ and insert the duplicate before pos_3
-    char *duplicate_segment = NULL;
-
-    int32_t seg_length;
-
-    if (pos_1 < pos_2) {
-        //
-        //       pos_1         pos_2                   -> 0-
-        //         |             |                   -       -
-        // 0--------------------------------->      -         -
-        //         ===============                  -         - pos_1
-        //           tmp (copy)                      -       -
-        //                                             -----      |
-        //                                             pos_2    <-'
-        //
-        std::vector<char> seq_dupl =
-                std::vector<char>(seq_.begin() + pos_1, seq_.begin() + pos_2);
-
-        insert(pos_3, seq_dupl);
-    } else { // if (pos_1 >= pos_2)
-        // The segment to duplicate includes the origin of replication.
-        // The copying process will be done in two steps.
-        //
-        //                                            ,->
-        //    pos_2                 pos_1            |      -> 0-
-        //      |                     |                   -       - pos_2
-        // 0--------------------------------->     pos_1 -         -
-        // ======                     =======            -         -
-        //  tmp2                        tmp1              -       -
-        //                                                  -----
-        //
-        //
-        std::vector<char>
-                seq_dupl = std::vector<char>(seq_.begin() + pos_1, seq_.end());
-        seq_dupl.insert(seq_dupl.end(), seq_.begin(), seq_.begin() + pos_2);
-
-        insert(pos_3, seq_dupl);
-    }
-}
 
 int Dna::promoter_at(int pos) {
     int prom_dist[PROM_SIZE];
@@ -131,7 +65,7 @@ int Dna::promoter_at(int pos) {
             search_pos -= seq_.size();
         // Searching for the promoter
         prom_dist[motif_id] =
-                PROM_SEQ[motif_id] == seq_[search_pos] ? 0 : 1;
+                (PROM_SEQ[motif_id]) == seq_[search_pos] ? 0 : 1;
 
     }
 
@@ -159,7 +93,6 @@ int Dna::promoter_at(int pos) {
                     prom_dist[19] +
                     prom_dist[20] +
                     prom_dist[21];
-
     return dist_lead;
 }
 
@@ -203,7 +136,6 @@ bool Dna::shine_dal_start(int pos) {
             break;
         }
     }
-
     return start;
 }
 
@@ -236,7 +168,7 @@ int Dna::codon_at(int pos) {
         t_pos = pos + i;
         if (t_pos >= seq_.size())
             t_pos -= seq_.size();
-        if (seq_[t_pos] == '1')
+        if (seq_[t_pos] == true)
             value += 1 << (CODON_SIZE - i - 1);
     }
 

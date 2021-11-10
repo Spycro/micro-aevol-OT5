@@ -108,13 +108,12 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
 
     // Generate a random organism that is better than nothing
     double r_compare = 0;
-
+    std::cout<< "gen random \n";
     while (r_compare >= 0) {
         auto random_organism = std::make_shared<Organism>(init_length_dna, rng_->gen(0, Threefry::MUTATION));
         random_organism->locate_promoters();
         random_organism->evaluate(target);
         internal_organisms_[0] = random_organism;
-
         r_compare = round((random_organism->metaerror - geometric_area) * 1E10) / 1E10;
     }
 
