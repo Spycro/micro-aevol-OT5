@@ -39,7 +39,10 @@ using namespace std;
 // For time tracing
 #include "Timetracer.h"
 
-static double staticTime= 0;
+static double staticSelectionTime= 0;
+static double staticPrepareTime= 0;
+static double staticIfTime= 0;
+static double staticMTime = 0;
 /**
  * Constructor for initializing a new simulation
  *
@@ -302,30 +305,26 @@ void ExpManager::selection(int indiv_id) const {
     double local_fit_array[NEIGHBORHOOD_SIZE];
     double probs[NEIGHBORHOOD_SIZE];
     double sum_local_fit = 0.0;
-    int count[NEIGHBORHOOD_WIDTH][NEIGHBORHOOD_HEIGHT];
-
+    int count =0;
     int32_t x = indiv_id / grid_height_;
     int32_t y = indiv_id % grid_height_;
 
-    int cur_x[NEIGHBORHOOD_SIZE], cur_y[NEIGHBORHOOD_SIZE];
+    int cur_x, cur_y;
 
-    double timing = omp_get_wtime();
 
     for (int8_t i = -1; i < NEIGHBORHOOD_WIDTH - 1; i++) {
         for (int8_t j = -1; j < NEIGHBORHOOD_HEIGHT - 1; j++) {
-            count[i+1][j+1] = (i+1)*NEIGHBORHOOD_WIDTH + j+1;
-            cur_x[count[i+1][j+1]] = (x + i + grid_width_) % grid_width_;
-            cur_y[count[i+1][j+1]] = (y + j + grid_height_) % grid_height_;
+            cur_x = (x + i + grid_width_) % grid_width_;
+            cur_y = (y + j + grid_height_) % grid_height_;
+            local_fit_array[count] = prev_internal_organisms_[cur_x * grid_width_ + cur_y]->fitness;
+            sum_local_fit += local_fit_array[count];
+            count++;
         }
     }
 
-    //#pragma omp simd reduction(+:sum_local_fit)
-    for (int8_t i = 0; i < NEIGHBORHOOD_SIZE; i++) {
-        local_fit_array[i] = prev_internal_organisms_[cur_x[i] * grid_width_ + cur_y[i]]->fitness;
-        sum_local_fit += local_fit_array[i];
-    }
 
-    //#pragma omp simd
+    //vectorising this speeds things up a little
+    #pragma omp simd
     for (int8_t i = 0; i < NEIGHBORHOOD_SIZE; i++) {
         probs[i] = local_fit_array[i] / sum_local_fit;
     }
@@ -340,7 +339,7 @@ void ExpManager::selection(int indiv_id) const {
     // on indique qui gagne la reproduction pour l'individu actuel
     next_generation_reproducer_[indiv_id] = ((x + x_offset + grid_width_) % grid_width_) * grid_height_ +
                                             ((y + y_offset + grid_height_) % grid_height_);
-    staticTime += (omp_get_wtime() - timing);
+                                            
 }
 
 /**
@@ -349,6 +348,7 @@ void ExpManager::selection(int indiv_id) const {
  * @param indiv_id : Organism unique id
  */
 void ExpManager::prepare_mutation(int indiv_id) const {
+    double tim = omp_get_wtime();
     //generation de la rng ??
     auto *rng = new Threefry::Gen(std::move(rng_->gen(indiv_id, Threefry::MUTATION)));
     const shared_ptr<Organism> &parent = prev_internal_organisms_[next_generation_reproducer_[indiv_id]];
@@ -366,6 +366,7 @@ void ExpManager::prepare_mutation(int indiv_id) const {
         internal_organisms_[indiv_id] = prev_internal_organisms_[parent_id];
         internal_organisms_[indiv_id]->reset_mutation_stats();
     }
+    staticMTime += (omp_get_wtime() - tim);
 }
 
 /**
@@ -373,25 +374,29 @@ void ExpManager::prepare_mutation(int indiv_id) const {
  *
  */
 void ExpManager::run_a_step() {
-
+    
     //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
+        double timing = omp_get_wtime();
         selection(indiv_id);
+        staticSelectionTime += (omp_get_wtime() - timing);
+        timing = omp_get_wtime();
         prepare_mutation(indiv_id);
-
+        staticPrepareTime += (omp_get_wtime() - timing);timing = omp_get_wtime();
         if (dna_mutator_array_[indiv_id]->hasMutate()) {
             auto &mutant = internal_organisms_[indiv_id];
             mutant->apply_mutations(dna_mutator_array_[indiv_id]->mutation_list_);
             mutant->evaluate(target);
         }
+        staticIfTime += (omp_get_wtime() - timing);
     }
 
     // Swap Population
-    for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        prev_internal_organisms_[indiv_id] = internal_organisms_[indiv_id];
-        internal_organisms_[indiv_id] = nullptr;
-    }
+    auto tempOrganisms = prev_internal_organisms_;
+    prev_internal_organisms_ = internal_organisms_;
+    internal_organisms_ = tempOrganisms;
+    std::fill(internal_organisms_,internal_organisms_ + nb_indivs_, nullptr);
 
     // Search for the best
     double best_fitness = prev_internal_organisms_[0]->fitness;
@@ -418,6 +423,7 @@ void ExpManager::run_a_step() {
 
     stats_best->write_best(best_indiv);
     stats_mean->write_average(prev_internal_organisms_, nb_indivs_);
+    
 }
 
 
@@ -462,6 +468,6 @@ void ExpManager::run_evolution(int nb_gen) {
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
     }
-    cout<< "timing "<< staticTime;
+    cout<< "timing "<< staticSelectionTime<< " prep "<< staticPrepareTime<< " if " << staticIfTime << " m " << staticMTime;
     STOP_TRACER
 }
