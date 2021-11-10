@@ -374,24 +374,18 @@ void ExpManager::prepare_mutation(int indiv_id) const {
  *
  */
 void ExpManager::run_a_step() {
-    
     //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        double timing = omp_get_wtime();
         selection(indiv_id);
-        staticSelectionTime += (omp_get_wtime() - timing);
-        timing = omp_get_wtime();
         prepare_mutation(indiv_id);
-        staticPrepareTime += (omp_get_wtime() - timing);timing = omp_get_wtime();
         if (dna_mutator_array_[indiv_id]->hasMutate()) {
             auto &mutant = internal_organisms_[indiv_id];
             mutant->apply_mutations(dna_mutator_array_[indiv_id]->mutation_list_);
             mutant->evaluate(target);
         }
-        staticIfTime += (omp_get_wtime() - timing);
+        
     }
-
     // Swap Population
     auto tempOrganisms = prev_internal_organisms_;
     prev_internal_organisms_ = internal_organisms_;
