@@ -45,8 +45,7 @@ void Dna::set(int pos, char c) {
 }
 
 void Dna::do_switch(int pos) {
-    if (seq_[pos] == '\0') seq_[pos] = '\x01';
-    else seq_[pos] = '\0';
+    seq_[pos] = '\x01' - seq_[pos];
 }
 
 
@@ -59,7 +58,7 @@ int Dna::promoter_at(int pos) {
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
             // Searching for the promoter
             prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] == seq_[pos + motif_id] ? 0 : 1;
+                    PROM_SEQ[motif_id] ^ seq_[pos + motif_id];
         } 
     }else{
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
@@ -68,7 +67,7 @@ int Dna::promoter_at(int pos) {
                 search_pos -= length();
             // Searching for the promoter
             prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] == seq_[search_pos] ? 0 : 1;
+                    PROM_SEQ[motif_id] ^ seq_[search_pos];
         }
     }
     //vectTime += omp_get_wtime() - t;
@@ -138,7 +137,7 @@ int Dna::terminator_at(int pos) {
             if (left >= length()) left -= length();
 
             // Search for the terminators
-            term_dist[motif_id] = seq_[right] != seq_[left] ? 1 : 0;
+            term_dist[motif_id] = !(seq_[right] ^ seq_[left]);
         }
         int dist_term_lead = term_dist[0] +
                             term_dist[1] +
