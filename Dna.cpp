@@ -126,7 +126,7 @@ int Dna::promoter_at(int pos) {
     int prom_dist[PROM_SIZE];
     //double t = omp_get_wtime();
     if((pos + PROM_SIZE)< length()){
-        #pragma omp simd
+        #pragma omp simd safelen(22) simdlen(22)
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
             // Searching for the promoter
             prom_dist[motif_id] =
@@ -177,16 +177,27 @@ int Dna::terminator_at(int pos) {
     if(true){
         int left[4];
         int right[4];
-        for(int i = 0;i<TERM_STEM_SIZE;++i){
-            left[i] = pos +i;
-            left[i] = left[i] >= length() ? left[i] - length() : left[i];
-            right[i] = pos + (TERM_SIZE -1) -i;
-            right[i] = right[i] >= length() ? right[i] - length() : right[i];
-            if(seq_[left[i]] == seq_[right[i]]){
-                return 0;
+        if(pos + TERM_SIZE < length()){
+            for(int i = 0;i<TERM_STEM_SIZE;++i){
+                left[i] = pos +i;
+                right[i] = pos + (TERM_SIZE -1) -i;
+                if(seq_[left[i]] == seq_[right[i]]){
+                    return 0;
+                }
             }
+            return TERM_STEM_SIZE;
+        }else{
+            for(int i = 0;i<TERM_STEM_SIZE;++i){
+                left[i] = pos +i;
+                left[i] = left[i] >= length() ? left[i] - length() : left[i];
+                right[i] = pos + (TERM_SIZE -1) -i;
+                right[i] = right[i] >= length() ? right[i] - length() : right[i];
+                if(seq_[left[i]] == seq_[right[i]]){
+                    return 0;
+                }
+            }
+            return TERM_STEM_SIZE;
         }
-        return TERM_STEM_SIZE;
     }else{
         int term_dist[TERM_STEM_SIZE];
         for (int motif_id = 0; motif_id < TERM_STEM_SIZE; motif_id++) {
