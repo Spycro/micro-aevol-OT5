@@ -42,7 +42,7 @@ using namespace std;
 static double staticSelectionTime= 0;
 static double staticPrepareTime= 0;
 static double staticIfTime= 0;
-static double staticMTime = 0;
+extern double staticMTime;
 /**
  * Constructor for initializing a new simulation
  *
@@ -373,7 +373,7 @@ void ExpManager::prepare_mutation(int indiv_id) const {
  */
 void ExpManager::run_a_step() {
     //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         selection(indiv_id);
         prepare_mutation(indiv_id);
@@ -428,7 +428,7 @@ void ExpManager::run_evolution(int nb_gen) {
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
     //TIMESTAMP(0, {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         internal_organisms_[indiv_id]->locate_promoters();
         prev_internal_organisms_[indiv_id]->evaluate(target);
