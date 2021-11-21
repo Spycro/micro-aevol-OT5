@@ -6,7 +6,7 @@
 #include <omp.h>
 #include <cassert>
 extern double staticMTime;
-Dna::Dna(int length, Threefry::Gen &&rng) : seq_(length) {
+Dna::Dna(int length, Threefry::Gen &&rng) {
     // Generate a random genome
     for (int32_t i = 0; i < length; i++) {
         seq_[i] = rng.random(NB_BASE);
@@ -37,9 +37,10 @@ void Dna::load(gzFile backup_file) {
     #pragma omp simd
     for(int i = 0 ; i< dna_length ;++i){
         tmp_seq[i] = tmp_seq[i]-'0';
+        seq_[i] = tmp_seq[i];
     }
 
-    seq_ = std::vector<char>(tmp_seq, tmp_seq + dna_length);
+  //  seq_ = std::vector<char>(tmp_seq, tmp_seq + dna_length);
 }
 
 void Dna::set(int pos, char c) {

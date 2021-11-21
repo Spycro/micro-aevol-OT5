@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <vector>
+#include <bitset>
 #include <zlib.h>
 
 #include "Threefry.h"
@@ -43,5 +43,5 @@ public:
 
     int codon_at(int pos);
 
-    std::vector<char> seq_;
+    std::bitset<5000> seq_;
 };
