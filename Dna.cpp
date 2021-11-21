@@ -48,7 +48,7 @@ void Dna::set(int pos, char c) {
 }
 
 void Dna::do_switch(int pos) {
-    seq_[pos] = '\x01' - seq_[pos];
+    seq_.flip(pos);
 }
 
 
@@ -58,6 +58,7 @@ int Dna::promoter_at(int pos) {
     char prom_dist[PROM_SIZE];
     //double t = omp_get_wtime();
     if((pos + PROM_SIZE)< length()){
+        std::bitset<8> temp;
         double t = omp_get_wtime();
         #pragma omp simd simdlen(22)
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
