@@ -15,7 +15,7 @@ public:
 
     void flip(int pos);
 
-    bool get(int pos);
+    bool get(int pos) const;
 
     char internalSet[5000];
 };
