@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include <bitset>
 #include <zlib.h>
 
@@ -44,4 +45,5 @@ public:
     int codon_at(int pos);
 
     std::bitset<5000> seq_;
+    std::vector<char> seq_c;
 };
