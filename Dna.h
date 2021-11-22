@@ -10,6 +10,7 @@
 
 #include "Threefry.h"
 #include "aevol_constants.h"
+#include "CustomBitset.h"
 
 class Dna {
 
@@ -44,5 +45,5 @@ public:
 
     int codon_at(int pos);
 
-    std::bitset<5000> seq_;
+    CustomBitset seq_;
 };

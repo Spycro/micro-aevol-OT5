@@ -44,7 +44,8 @@ add_library(micro_aevol
         Organism.cpp
         Stats.cpp
         Threefry.cpp
-        Dna.cpp)
+        Dna.cpp
+        CustomBitset.cpp)
 
 target_link_libraries(micro_aevol PUBLIC ZLIB::ZLIB)
 

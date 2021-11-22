@@ -10,7 +10,7 @@ Dna::Dna(int length, Threefry::Gen &&rng) {
     // Generate a random genome
     for (int32_t i = 0; i < length; i++) {
         auto a = rng.random(NB_BASE);
-        seq_[i] = a;
+        seq_.set(i,a);
     }
 }
 
@@ -23,7 +23,7 @@ void Dna::save(gzFile backup_file) {
     std::vector<char> translatedSeq(dna_length);
     #pragma omp simd
     for(int i = 0; i< dna_length;++i){
-        translatedSeq[i] = seq_[i] + '0';
+        translatedSeq[i] = seq_.get(i) + '0';
     }
     gzwrite(backup_file, &dna_length, sizeof(dna_length));
     gzwrite(backup_file, translatedSeq.data(), dna_length * sizeof(translatedSeq[0]));
@@ -38,14 +38,14 @@ void Dna::load(gzFile backup_file) {
     #pragma omp simd
     for(int i = 0 ; i< dna_length ;++i){
         tmp_seq[i] = tmp_seq[i]-'0';
-        seq_[i] = tmp_seq[i];
+        seq_.set(i,tmp_seq[i]);
     }
 
   //  seq_ = std::vector<char>(tmp_seq, tmp_seq + dna_length);
 }
 
 void Dna::set(int pos, char c) {
-    seq_[pos] = c;
+    seq_.set(pos,c);
 }
 
 void Dna::do_switch(int pos) {
@@ -63,7 +63,7 @@ int Dna::promoter_at(int pos) {
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
             // Searching for the promoter
             prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] != seq_[pos + motif_id];
+                    PROM_SEQ[motif_id] != seq_.get(pos + motif_id);
         } 
         staticMTime += omp_get_wtime() -t;
     }else{
@@ -74,7 +74,7 @@ int Dna::promoter_at(int pos) {
                 search_pos -= length();
             // Searching for the promoter
             prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] != seq_[search_pos];
+                    PROM_SEQ[motif_id] != seq_.get(search_pos);
         }
         
     }
@@ -101,7 +101,7 @@ int Dna::terminator_at(int pos) {
             for(int i = 0;i<TERM_STEM_SIZE;++i){
                 left[i] = pos +i;
                 right[i] = pos + (TERM_SIZE -1) -i;
-                if(seq_[left[i]] == seq_[right[i]]){
+                if(seq_.get(left[i]) == seq_.get(right[i])){
                     return 0;
                 }
             }
@@ -112,7 +112,7 @@ int Dna::terminator_at(int pos) {
                 left[i] = left[i] >= length() ? left[i] - length() : left[i];
                 right[i] = pos + (TERM_SIZE -1) -i;
                 right[i] = right[i] >= length() ? right[i] - length() : right[i];
-                if(seq_[left[i]] == seq_[right[i]]){
+                if(seq_.get(left[i]) == seq_.get(right[i])){
                     return 0;
                 }
             }
@@ -129,7 +129,7 @@ int Dna::terminator_at(int pos) {
             if (left >= length()) left -= length();
 
             // Search for the terminators
-            term_dist[motif_id] = !(seq_[right] ^ seq_[left]);
+            term_dist[motif_id] = !(seq_.get(right) ^ seq_.get(left));
         }
         int dist_term_lead = term_dist[0] +
                             term_dist[1] +
@@ -150,7 +150,7 @@ bool Dna::shine_dal_start(int pos) {
         if (t_pos >= seq_.size())
             t_pos -= seq_.size();
 
-        if (seq_[t_pos] == SHINE_DAL_SEQ[k_t]) {
+        if (seq_.get(t_pos) == SHINE_DAL_SEQ[k_t]) {
             start = true;
         } else {
             start = false;
@@ -170,7 +170,7 @@ bool Dna::protein_stop(int pos) {
         if (t_k >= seq_.size())
             t_k -= seq_.size();
 
-        if (seq_[t_k] == PROTEIN_END[k]) {
+        if (seq_.get(t_k) == PROTEIN_END[k]) {
             is_protein = true;
         } else {
             is_protein = false;
@@ -190,7 +190,7 @@ int Dna::codon_at(int pos) {
         t_pos = pos + i;
         if (t_pos >= seq_.size())
             t_pos -= seq_.size();
-        if (seq_[t_pos] == '\x01')
+        if (seq_.get(t_pos) == '\x01')
             value += 1 << (CODON_SIZE - i - 1);
     }
 

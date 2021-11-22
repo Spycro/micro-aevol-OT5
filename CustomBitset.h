@@ -3,13 +3,13 @@
 class CustomBitset {
 
 public:
-    CustomBitset() = default;
+    CustomBitset();
 
     CustomBitset(const CustomBitset &clone) = default;
 
     ~CustomBitset() = default;
 
-    int length() const;
+    int size() const;
 
     void set(int pos, bool c);
 
