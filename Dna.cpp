@@ -5,7 +5,6 @@
 #include "Dna.h"
 #include <omp.h>
 #include <cassert>
-#include <chrono>
 extern long long staticMTime;
 Dna::Dna(int length, Threefry::Gen &&rng) {
     // Generate a random genome
@@ -57,7 +56,7 @@ void Dna::do_switch(int pos) {
 
 int Dna::promoter_at(int pos) {
     char prom_dist[PROM_SIZE];
-    int mres;
+    
     if((pos + PROM_SIZE)< length()){
         if(false){
             #pragma omp simd
@@ -67,8 +66,9 @@ int Dna::promoter_at(int pos) {
                         PROM_SEQ[motif_id] != seq_.get(pos + motif_id);
             } 
         }else{
+            int mres;
             //auto curTime = std::chrono::system_clock::now();
-            std::bitset<22> chunck{seq_.getAround(pos,PROM_SIZE)} ;
+            std::bitset<22> chunck{seq_.getAround(pos)} ;
             //auto end = std::chrono::system_clock::now();
             std::bitset<22> bits{PROM_SEQ ^ chunck};
            

@@ -17,7 +17,11 @@ public:
 
     bool get(int pos) const;
 
-    uint32_t getAround(int pos, int length) const;
+    uint32_t getAround(int pos) const;
 
-    unsigned char internalSet[5000];
+private:
+    unsigned int length = 5000;
+    uint8_t internalSet[5000];
+    int chunkSize;
+    int numberOfChunks = 5000;
 };
