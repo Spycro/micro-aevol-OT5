@@ -42,7 +42,7 @@ using namespace std;
 static double staticSelectionTime= 0;
 static double staticPrepareTime= 0;
 static double staticIfTime= 0;
-extern double staticMTime;
+extern long long staticMTime;
 /**
  * Constructor for initializing a new simulation
  *
