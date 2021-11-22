@@ -9,7 +9,7 @@ public:
 
     ~CustomBitset() = default;
 
-    int size() const;
+    const unsigned int& size() const;
 
     void set(int pos, bool c);
 
@@ -17,11 +17,12 @@ public:
 
     bool get(int pos) const;
 
-    uint32_t getAround(int pos) const;
+    uint32_t getAround(int pos)const ;
 
 private:
     unsigned int length = 5000;
-    uint8_t internalSet[5000];
+    int numberOfChunks = 157;
+    uint32_t internalSet[157];
     int chunkSize;
-    int numberOfChunks = 5000;
+    
 };

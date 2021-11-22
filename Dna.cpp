@@ -8,9 +8,11 @@
 extern long long staticMTime;
 Dna::Dna(int length, Threefry::Gen &&rng) {
     // Generate a random genome
+    std::bitset<5000> sanity;sanity.reset();
     for (int32_t i = 0; i < length; i++) {
         auto a = rng.random(NB_BASE);
         seq_.set(i,a);
+        sanity[i] = a;
     }
 }
 
@@ -67,18 +69,13 @@ int Dna::promoter_at(int pos) {
             } 
         }else{
             int mres;
-            //auto curTime = std::chrono::system_clock::now();
-            std::bitset<22> chunck{seq_.getAround(pos)} ;
-            //auto end = std::chrono::system_clock::now();
-            std::bitset<22> bits{PROM_SEQ ^ chunck};
-           
             
-            
+            std::bitset<22> comparison{seq_.getAround(pos)};
+            std::bitset<22> bits{comparison^PROM_SEQ};
+
             mres=bits.count();
             
             
-
-            //staticMTime += std::chrono::duration_cast<std::chrono::nanoseconds>(end-curTime).count();
             return mres;
         }
         
