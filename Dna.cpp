@@ -6,18 +6,11 @@
 #include <omp.h>
 #include <cassert>
 extern double staticMTime;
-Dna::Dna(int length, Threefry::Gen &&rng) : seq_c(length) {
+Dna::Dna(int length, Threefry::Gen &&rng) {
     // Generate a random genome
     for (int32_t i = 0; i < length; i++) {
         auto a = rng.random(NB_BASE);
         seq_[i] = a;
-        seq_c[i] = a;
-    }
-
-    for(int i = 0 ; i< 5000;++i){
-        if((seq_[i] + '0') != (seq_c[i] + '0')){
-            std::cout<< "error";
-        }
     }
 }
 
@@ -53,12 +46,10 @@ void Dna::load(gzFile backup_file) {
 
 void Dna::set(int pos, char c) {
     seq_[pos] = c;
-    seq_c[pos] = c;
 }
 
 void Dna::do_switch(int pos) {
     seq_.flip(pos);
-    seq_c[pos] = '\x01' - seq_[pos];
 }
 
 
@@ -72,7 +63,7 @@ int Dna::promoter_at(int pos) {
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
             // Searching for the promoter
             prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] ^ seq_[pos + motif_id];
+                    PROM_SEQ[motif_id] != seq_[pos + motif_id];
         } 
         staticMTime += omp_get_wtime() -t;
     }else{
@@ -83,7 +74,7 @@ int Dna::promoter_at(int pos) {
                 search_pos -= length();
             // Searching for the promoter
             prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] ^ seq_[search_pos];
+                    PROM_SEQ[motif_id] != seq_[search_pos];
         }
         
     }
