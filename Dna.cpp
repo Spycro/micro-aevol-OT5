@@ -56,16 +56,42 @@ void Dna::do_switch(int pos) {
 
 int Dna::promoter_at(int pos) {
     char prom_dist[PROM_SIZE];
+    int mres;
     //double t = omp_get_wtime();
     if((pos + PROM_SIZE)< length()){
         double t = omp_get_wtime();
-        #pragma omp simd
-        for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
-            // Searching for the promoter
-            prom_dist[motif_id] =
-                    PROM_SEQ[motif_id] != seq_.get(pos + motif_id);
-        } 
+        std::bitset<22> sanity;sanity.reset();
+        //if(true){
+            #pragma omp simd
+            for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
+                // Searching for the promoter
+                prom_dist[motif_id] =
+                        PROM_SEQ[motif_id] != seq_.get(pos + motif_id);
+                sanity.set(motif_id,seq_.get(pos+motif_id));
+            } 
+            
+       // }else{
+            std::bitset<22> chunck{seq_.getAround(pos,PROM_SIZE)} ;
+            std::bitset<22> bits{PROM_SEQ ^ chunck};
+
+            mres=bits.count();
+       // }
         staticMTime += omp_get_wtime() -t;
+
+        int dist_lead =0;
+        for(int pDist:prom_dist){
+            dist_lead += pDist;
+            if(dist_lead > PROM_MAX_DIFF){
+                //return dist_lead;
+            }
+        }
+        if(dist_lead != mres){
+            std::cout << "error: " << dist_lead << " " << mres<< "\n";
+            std::cout<< sanity.to_string()<<"\n";
+            std::cout<< chunck.to_string()<<"\n";
+            std::cout<< PROM_SEQ.to_string()<<"\n";
+            std::cout<< bits.to_string()<<"\n\n\n";
+        }
     }else{
         
         for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {

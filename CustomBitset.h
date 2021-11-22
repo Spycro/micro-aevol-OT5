@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdint.h>
 class CustomBitset {
 
 public:
@@ -17,5 +17,7 @@ public:
 
     bool get(int pos) const;
 
-    char internalSet[5000];
+    uint32_t getAround(int pos, int length) const;
+
+    unsigned char internalSet[5000];
 };
