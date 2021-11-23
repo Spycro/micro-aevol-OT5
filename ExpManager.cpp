@@ -373,7 +373,7 @@ void ExpManager::prepare_mutation(int indiv_id) const {
  */
 void ExpManager::run_a_step() {
     //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         selection(indiv_id);
         prepare_mutation(indiv_id);
@@ -382,13 +382,11 @@ void ExpManager::run_a_step() {
             mutant->apply_mutations(dna_mutator_array_[indiv_id]->mutation_list_);
             mutant->evaluate(target);
         }
-        
     }
     // Swap Population
     auto tempOrganisms = prev_internal_organisms_;
     prev_internal_organisms_ = internal_organisms_;
     internal_organisms_ = tempOrganisms;
-    std::fill(internal_organisms_,internal_organisms_ + nb_indivs_, nullptr);
 
     // Search for the best
     double best_fitness = prev_internal_organisms_[0]->fitness;
@@ -428,7 +426,7 @@ void ExpManager::run_evolution(int nb_gen) {
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
     //TIMESTAMP(0, {
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         internal_organisms_[indiv_id]->locate_promoters();
         prev_internal_organisms_[indiv_id]->evaluate(target);
@@ -450,7 +448,7 @@ void ExpManager::run_evolution(int nb_gen) {
 
         printf("Generation %d : Best individual fitness %e\n", AeTime::time(), best_indiv->fitness);
         FLUSH_TRACES(gen)
-
+        
         for (int indiv_id = 0; indiv_id < nb_indivs_; ++indiv_id) {
             delete dna_mutator_array_[indiv_id];
             dna_mutator_array_[indiv_id] = nullptr;
