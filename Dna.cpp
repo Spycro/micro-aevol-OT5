@@ -6,13 +6,11 @@
 #include <omp.h>
 #include <cassert>
 extern long long staticMTime;
-Dna::Dna(int length, Threefry::Gen &&rng) {
+Dna::Dna(int length, Threefry::Gen &&rng) : seq_(length) {
     // Generate a random genome
-    std::bitset<5000> sanity;sanity.reset();
     for (int32_t i = 0; i < length; i++) {
         auto a = rng.random(NB_BASE);
         seq_.set(i,a);
-        sanity[i] = a;
     }
 }
 

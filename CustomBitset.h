@@ -1,9 +1,12 @@
 #pragma once
 #include <stdint.h>
+#include <vector>
 class CustomBitset {
 
 public:
-    CustomBitset();
+    CustomBitset() = default;
+
+    CustomBitset(int size);
 
     CustomBitset(const CustomBitset &clone) = default;
 
@@ -20,9 +23,10 @@ public:
     uint32_t getAround(int pos)const ;
 
 private:
-    unsigned int length = 5000;
-    int numberOfChunks = 157;
-    uint32_t internalSet[157];
+    unsigned int length;
+    int numberOfChunks;
+    std::vector<uint32_t> internalSet;
+    //std::vector<char> getSet;
     int chunkSize;
     
 };

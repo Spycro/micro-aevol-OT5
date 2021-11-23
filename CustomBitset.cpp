@@ -3,9 +3,11 @@
 #include <bitset>
 #include <cstring>
 
-constexpr unsigned char evo = 0b10000000;
-CustomBitset::CustomBitset(){
-    chunkSize = sizeof(internalSet[0])*8;
+CustomBitset::CustomBitset(int size){
+    length = size;
+    chunkSize = sizeof(uint32_t)*8;
+    numberOfChunks = length/chunkSize +1;
+    internalSet = std::vector<uint32_t>(numberOfChunks);
     for(int i = 0; i < numberOfChunks;++i){
         internalSet[i] = 0ul;
     }
