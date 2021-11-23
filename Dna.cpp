@@ -155,17 +155,21 @@ bool Dna::shine_dal_start(int pos) {
     bool start = false;
     int t_pos, k_t;
 
-    for (int k = 0; k < SHINE_DAL_SIZE + CODON_SIZE; k++) {
-        k_t = k >= SHINE_DAL_SIZE ? k + SD_START_SPACER : k;
-        t_pos = pos + k_t;
-        if (t_pos >= seq_.size())
-            t_pos -= seq_.size();
+    if((pos + SHINE_DAL_SIZE+CODON_SIZE + 4 < length()) && true){
+        return ((seq_.getAround(pos) ^ SHINE_DAL_SEQ_INT)&SHINE_DAL_MASK_INT) == 0;
+    }else{
+        for (int k = 0; k < SHINE_DAL_SIZE + CODON_SIZE; k++) {
+            k_t = k >= SHINE_DAL_SIZE ? k + SD_START_SPACER : k;
+            t_pos = pos + k_t;
+            if (t_pos >= seq_.size())
+                t_pos -= seq_.size();
 
-        if (seq_.get(t_pos) == SHINE_DAL_SEQ[k_t]) {
-            start = true;
-        } else {
-            start = false;
-            break;
+            if (seq_.get(t_pos) == SHINE_DAL_SEQ[k_t]) {
+                start = true;
+            } else {
+                start = false;
+                break;
+            }
         }
     }
 

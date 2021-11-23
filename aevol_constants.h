@@ -23,6 +23,9 @@ constexpr int8_t SD_START_SPACER = 4;
 constexpr int8_t SD_TO_START = SHINE_DAL_SIZE + SD_START_SPACER + CODON_SIZE;
 //constexpr const char *SHINE_DAL_SEQ = "\0\x01\x01\0\x01\x01xxxx\0\0\0";//"011011****000";
 const std::bitset<13> SHINE_DAL_SEQ {"0000000110110"};//0000000110110
+constexpr uint32_t SHINE_DAL_SEQ_INT = 0b0000000110110;
+const std::bitset<13> SHINE_DAL_MASK{"1110000111111"};
+constexpr uint32_t SHINE_DAL_MASK_INT = 0b1110000111111;
 // stop
 //constexpr const char *PROTEIN_END = "\0\0\x01";//"001"; // CODON_STOP
 const std::bitset<3> PROTEIN_END{"100"};//100

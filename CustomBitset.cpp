@@ -48,7 +48,7 @@ uint32_t CustomBitset::getAround(int pos) const{
     }else{
         int bytePos = pos / chunkSize;
         int internalPos =pos % chunkSize;
-        int byteLength =  std::max(32 /chunkSize,1)  ;
+        int byteLength =  32 /chunkSize  ;
 
         unsigned long long res = 0;
         #pragma omp simd
