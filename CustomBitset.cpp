@@ -3,14 +3,11 @@
 #include <bitset>
 #include <cstring>
 
-CustomBitset::CustomBitset(int size){
+CustomBitset::CustomBitset(int size) : largeSet(size){
     length = size;
     chunkSize = sizeof(uint32_t)*8;
     numberOfChunks = length/chunkSize +1;
     internalSet = std::vector<uint32_t>(numberOfChunks);
-    for(int i = 0; i < numberOfChunks;++i){
-        internalSet[i] = 0ul;
-    }
 }
 
 const unsigned int& CustomBitset::size() const {
@@ -21,18 +18,23 @@ void CustomBitset::set(int pos, bool c){
     int bytePos = pos /chunkSize;
     int internalPos =pos % chunkSize;
     internalSet[bytePos] |= (-c^internalSet[bytePos])&(1ul<<internalPos);
+
+    largeSet[pos] = c;
 }
 
 void CustomBitset::flip(int pos){
     int bytePos = pos / chunkSize;
     int internalPos = pos % chunkSize;
     internalSet[bytePos] ^= (1ul<<internalPos);
+
+    largeSet[pos] = !largeSet[pos];
 }
 
-bool CustomBitset::get(int pos) const{
-    int bytePos = pos / chunkSize;
+const uint8_t& CustomBitset::get(const int&  pos) const{
+    /*int bytePos = pos / chunkSize;
     int internalPos = pos % chunkSize;
-    return (internalSet[bytePos] >> internalPos) & 1ul;
+    return (internalSet[bytePos] >> internalPos) & 1ul;*/
+    return largeSet[pos];
 }
 
 uint32_t CustomBitset::getAround(int pos) const{

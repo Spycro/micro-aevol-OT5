@@ -18,7 +18,7 @@ public:
 
     void flip(int pos);
 
-    bool get(int pos) const;
+    const uint8_t& get(const int& pos) const;
 
     uint32_t getAround(int pos)const ;
 
@@ -26,7 +26,7 @@ private:
     unsigned int length;
     int numberOfChunks;
     std::vector<uint32_t> internalSet;
-    //std::vector<char> getSet;
+    std::vector<uint8_t> largeSet;
     int chunkSize;
     
 };
