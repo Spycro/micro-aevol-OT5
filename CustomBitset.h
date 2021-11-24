@@ -22,10 +22,8 @@ public:
 
     const uint32_t& getAround(const int& pos) ;
 
+    const uint32_t& getAroundShift(const int& pos);
 private:
-    const uint32_t& fetch(const int& pos) ;
-    const uint32_t& moveFetch(const int& pos) ;
-
     unsigned int length;
     int numberOfChunks;
     std::vector<uint32_t> internalSet;

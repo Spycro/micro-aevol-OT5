@@ -90,3 +90,9 @@ const uint32_t& CustomBitset::getAround(const int& pos){
     }
     
 }
+
+const uint32_t& CustomBitset::getAroundShift(const int& pos){
+    posCache = pos;
+    sectionCache = (sectionCache >> 1) | (leftAdditionMask) * largeSet[pos+31];
+    return sectionCache;
+}

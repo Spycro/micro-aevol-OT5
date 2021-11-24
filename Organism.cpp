@@ -239,14 +239,29 @@ void Organism::search_start_protein() {
             c_pos += PROM_SIZE;
             loop_back(c_pos);
 
-            while (c_pos != rna->end) {
+            if(rna->end > c_pos && rna->end + SHINE_DAL_SIZE+CODON_SIZE + 4 < dna_->length()){//majority of calls go here (about 99.996%)
                 if (dna_->shine_dal_start(c_pos)) {
-                    rna->start_prot.push_back(c_pos);
+                        rna->start_prot.push_back(c_pos);
                 }
-
                 c_pos++;
-                loop_back(c_pos);
+                while (c_pos != rna->end) {
+                    if (dna_->shine_dal_start_shift(c_pos)) {
+                        rna->start_prot.push_back(c_pos);
+                    }
+
+                    c_pos++;
+                }
+            }else{//Very few calls go here, not worth changing
+                while (c_pos != rna->end) {
+                    if (dna_->shine_dal_start(c_pos)) {
+                        rna->start_prot.push_back(c_pos);
+                    }
+
+                    c_pos++;
+                    loop_back(c_pos);
+                }
             }
+            
         }
     }
 }

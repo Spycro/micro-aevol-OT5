@@ -40,6 +40,7 @@ public:
     int terminator_at(int pos);
 
     bool shine_dal_start(int pos);
+    bool shine_dal_start_shift(int pos);
 
     bool protein_stop(int pos);
 

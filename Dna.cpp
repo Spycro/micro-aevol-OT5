@@ -175,6 +175,10 @@ bool Dna::shine_dal_start(int pos) {
     return start;
 }
 
+bool Dna::shine_dal_start_shift(int pos) {
+    return ((seq_.getAroundShift(pos) ^ SHINE_DAL_SEQ_INT)&SHINE_DAL_MASK_INT) == 0;
+}
+
 bool Dna::protein_stop(int pos) {
     bool is_protein;
     int t_k;
