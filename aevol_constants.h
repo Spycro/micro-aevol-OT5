@@ -13,6 +13,8 @@ constexpr int8_t PROM_MAX_DIFF = 4;
 constexpr int8_t PROM_SIZE = 22;
 //constexpr const char *PROM_SEQ = "\0\x01\0\x01\0\x01\x01\0\0\x01\x01\x01\0\0\x01\0\0\x01\0\x01\x01\0";//0101011001110010010110
 const std::bitset<22> PROM_SEQ{"0110100100111001101010"};//0110100100111001101010
+constexpr uint32_t PROM_SEQ_INT = 0b0110100100111001101010;
+constexpr uint32_t PROM_SEQ_MASK_INT = 0b1111111111111111111111;
 // terminator
 constexpr int8_t TERM_STEM_SIZE = 4;
 constexpr int8_t TERM_LOOP_SIZE = 3;

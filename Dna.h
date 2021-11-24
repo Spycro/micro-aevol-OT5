@@ -36,6 +36,7 @@ public:
 
 
     int promoter_at(int pos);
+    int promoter_at_shift(int pos);
 
     int terminator_at(int pos);
 

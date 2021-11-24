@@ -67,11 +67,7 @@ int Dna::promoter_at(int pos) {
             } 
         }else{
             int mres;
-            std::bitset<22> comparison{seq_.getAround(pos)};
-            std::bitset<22> bits{comparison^PROM_SEQ};
-
-            mres=bits.count();
-            
+            mres=std::bitset<22>{seq_.getAround(pos) ^ PROM_SEQ_INT}.count();
             
             return mres;
         }
@@ -99,6 +95,9 @@ int Dna::promoter_at(int pos) {
         }
     }
     return dist_lead;
+}
+int Dna::promoter_at_shift(int pos) { 
+    return  std::bitset<22>{seq_.getAroundShift(pos) ^ PROM_SEQ_INT}.count();
 }
 
 // Given a, b, c, d boolean variable and X random boolean variable,

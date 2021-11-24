@@ -678,20 +678,32 @@ void Organism::look_for_new_promoters_starting_between(int32_t pos_1, int32_t po
     // As positions  0 and dna_->length() are equivalent, it's preferable to
     // keep 0 for pos_1 and dna_->length() for pos_2.
 
-    if (pos_1 >= pos_2) {
+    if (pos_1 >= pos_2) {//This only happens about 0.0439% of the time, not worth changing
         look_for_new_promoters_starting_after(pos_1);
         look_for_new_promoters_starting_before(pos_2);
         return;
     }
     // Hamming distance of the sequence from the promoter consensus
 
-    for (int32_t i = pos_1; i < pos_2; i++) {
-        int8_t dist = dna_->promoter_at(i);
-
+    int pos_m = min(pos_2,dna_->length()-SHINE_DAL_SIZE);
+    int8_t dist = dna_->promoter_at(pos_1);
+    if(dist <= PROM_MAX_DIFF){
+        add_new_promoter(pos_1,dist);
+    }
+    for (int32_t i = pos_1 +1; i < pos_m; i++) {
+        dist = dna_->promoter_at_shift(i);
         if (dist <= PROM_MAX_DIFF) { // dist takes the hamming distance of the sequence from the consensus
             add_new_promoter(i, dist);
         }
     }
+
+    for (int32_t i = pos_m; i < pos_2; i++) {
+        dist = dna_->promoter_at(i);
+        if (dist <= PROM_MAX_DIFF) { // dist takes the hamming distance of the sequence from the consensus
+            add_new_promoter(i, dist);
+        }
+    }
+    
 }
 
 void Organism::look_for_new_promoters_starting_after(int32_t pos) {
