@@ -67,7 +67,6 @@ int Dna::promoter_at(int pos) {
             } 
         }else{
             int mres;
-            
             std::bitset<22> comparison{seq_.getAround(pos)};
             std::bitset<22> bits{comparison^PROM_SEQ};
 
