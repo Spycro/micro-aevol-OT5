@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <zlib.h>
+#include <chrono>
 
 using namespace std;
 
@@ -412,6 +413,8 @@ void ExpManager::run_a_step() {
  * @param nb_gen : Number of generations to simulate
  */
 void ExpManager::run_evolution(int nb_gen) {
+    auto startTime = std::chrono::high_resolution_clock::now();
+
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
     TIMESTAMP(0, {
@@ -447,5 +450,6 @@ void ExpManager::run_evolution(int nb_gen) {
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
     }
+    std::cout<<"execTime: " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-startTime).count()<<std::endl;
     STOP_TRACER
 }
