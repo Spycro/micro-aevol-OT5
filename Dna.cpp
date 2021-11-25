@@ -40,8 +40,6 @@ void Dna::load(gzFile backup_file) {
         tmp_seq[i] = tmp_seq[i]-'0';
         seq_.set(i,tmp_seq[i]);
     }
-
-  //  seq_ = std::vector<char>(tmp_seq, tmp_seq + dna_length);
 }
 
 void Dna::set(int pos, char c) {
