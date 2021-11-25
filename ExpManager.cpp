@@ -29,6 +29,7 @@
 #include <iostream>
 #include <zlib.h>
 #include <omp.h>
+#include <chrono>
 
 using namespace std;
 
@@ -421,7 +422,7 @@ void ExpManager::run_a_step() {
  * @param nb_gen : Number of generations to simulate
  */
 void ExpManager::run_evolution(int nb_gen) {
-    double startOmpTime = omp_get_wtime();
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
@@ -457,11 +458,11 @@ void ExpManager::run_evolution(int nb_gen) {
         }
 
         if (AeTime::time() % backup_step_ == 0) {
-            //save(AeTime::time());
+            save(AeTime::time());
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
     }
 
-    std::cout<<"execTime: " << omp_get_wtime() - startOmpTime<<std::endl;
+    std::cout<<"execTime: " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-startTime).count()<<std::endl;
     STOP_TRACER
 }
