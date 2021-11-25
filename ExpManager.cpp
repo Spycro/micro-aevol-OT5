@@ -421,6 +421,8 @@ void ExpManager::run_a_step() {
  * @param nb_gen : Number of generations to simulate
  */
 void ExpManager::run_evolution(int nb_gen) {
+    double startOmpTime = omp_get_wtime();
+
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
     //TIMESTAMP(0, {
@@ -459,5 +461,7 @@ void ExpManager::run_evolution(int nb_gen) {
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
     }
+
+    std::cout<<"execTime: " << omp_get_wtime() - startOmpTime<<std::endl;
     STOP_TRACER
 }
