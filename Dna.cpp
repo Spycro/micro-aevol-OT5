@@ -102,8 +102,8 @@ int Dna::promoter_at_shift(int pos) {
 
 // Given a, b, c, d boolean variable and X random boolean variable,
 // a terminator look like : a b c d X X !d !c !b !a
-int Dna::terminator_at(int pos) {
-    if(true){
+bool Dna::terminator_at(int pos) {
+    if(false){
         int left[4];
         int right[4];
         if(pos + TERM_SIZE < length()){
@@ -111,10 +111,10 @@ int Dna::terminator_at(int pos) {
                 left[i] = pos +i;
                 right[i] = pos + (TERM_SIZE -1) -i;
                 if(seq_.get(left[i]) == seq_.get(right[i])){
-                    return 0;
+                    return false;
                 }
             }
-            return TERM_STEM_SIZE;
+            return true;
         }else{
             for(int i = 0;i<TERM_STEM_SIZE;++i){
                 left[i] = pos +i;
@@ -122,10 +122,25 @@ int Dna::terminator_at(int pos) {
                 right[i] = pos + (TERM_SIZE -1) -i;
                 right[i] = right[i] >= length() ? right[i] - length() : right[i];
                 if(seq_.get(left[i]) == seq_.get(right[i])){
-                    return 0;
+                    return false;
                 }
             }
-            return TERM_STEM_SIZE;
+            return true;
+        }
+    }else if(true){
+        if(pos + TERM_SIZE < length()){
+            return TERMINATOR_LOOKUP_TABLE[seq_.getAround(pos) & TERM_MASK_INT];
+        }else{
+            for(int i = 0;i<TERM_STEM_SIZE;++i){
+                int left = pos +i;
+                left = left >= length() ? left - length() : left;
+                int right = pos + (TERM_SIZE -1) -i;
+                right = right >= length() ? right - length() : right;
+                if(seq_.get(left) == seq_.get(right)){
+                    return false;
+                }
+            }
+            return true;
         }
     }else{
         int term_dist[TERM_STEM_SIZE];
@@ -138,15 +153,19 @@ int Dna::terminator_at(int pos) {
             if (left >= length()) left -= length();
 
             // Search for the terminators
-            term_dist[motif_id] = !(seq_.get(right) ^ seq_.get(left));
+            term_dist[motif_id] = (seq_.get(right) != seq_.get(left));
         }
         int dist_term_lead = term_dist[0] +
                             term_dist[1] +
                             term_dist[2] +
                             term_dist[3];
-        return dist_term_lead;
+        return dist_term_lead == TERM_STEM_SIZE;
     }
 
+}
+
+bool Dna::terminator_at_shift(int pos) {
+    return TERMINATOR_LOOKUP_TABLE[seq_.getAroundShift(pos) & TERM_MASK_INT];
 }
 
 bool Dna::shine_dal_start(int pos) {

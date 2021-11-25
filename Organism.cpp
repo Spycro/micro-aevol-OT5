@@ -190,10 +190,23 @@ void Organism::compute_RNA() {
 
         bool terminator_found = false;
 
-        while (!terminator_found) {
-            int term_dist_leading = dna_->terminator_at(cur_pos);
+        int mid_pos = dna_->length() - TERM_SIZE;
 
-            if (term_dist_leading == TERM_STEM_SIZE)
+        if(dna_->terminator_at(cur_pos)){
+            terminator_found = true;
+        }
+
+        if(!terminator_found){
+            for(++cur_pos;cur_pos<mid_pos;++cur_pos){ //terminator is found in this loop about 93.7% of the time
+                if(dna_->terminator_at_shift(cur_pos)){
+                    terminator_found = true;
+                    break;
+                }
+            }
+        }
+
+        while (!terminator_found) {
+            if (dna_->terminator_at(cur_pos))
                 terminator_found = true;
             else {
                 cur_pos++;

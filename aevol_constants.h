@@ -19,6 +19,8 @@ constexpr uint32_t PROM_SEQ_MASK_INT = 0b1111111111111111111111;
 constexpr int8_t TERM_STEM_SIZE = 4;
 constexpr int8_t TERM_LOOP_SIZE = 3;
 constexpr int8_t TERM_SIZE = TERM_STEM_SIZE + TERM_LOOP_SIZE + TERM_STEM_SIZE;
+extern bool TERMINATOR_LOOKUP_TABLE[];
+constexpr uint32_t TERM_MASK_INT = 0b11110001111;
 // shine dalgardo
 constexpr int8_t SHINE_DAL_SIZE = 6;
 constexpr int8_t SD_START_SPACER = 4;
