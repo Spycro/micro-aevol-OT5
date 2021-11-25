@@ -39,10 +39,6 @@ using namespace std;
 // For time tracing
 #include "Timetracer.h"
 
-static double staticSelectionTime= 0;
-static double staticPrepareTime= 0;
-static double staticIfTime= 0;
-extern long long staticMTime;
 /**
  * Constructor for initializing a new simulation
  *
@@ -373,7 +369,7 @@ void ExpManager::prepare_mutation(int indiv_id) const {
  */
 void ExpManager::run_a_step() {
     //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         selection(indiv_id);
         prepare_mutation(indiv_id);
@@ -407,7 +403,7 @@ void ExpManager::run_a_step() {
     stats_mean->reinit(AeTime::time());
 
     //a little faster when run in parallel
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         if (dna_mutator_array_[indiv_id]->hasMutate())
             prev_internal_organisms_[indiv_id]->compute_protein_stats();
@@ -428,7 +424,7 @@ void ExpManager::run_evolution(int nb_gen) {
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
     //TIMESTAMP(0, {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         internal_organisms_[indiv_id]->locate_promoters();
         prev_internal_organisms_[indiv_id]->evaluate(target);
@@ -452,17 +448,16 @@ void ExpManager::run_evolution(int nb_gen) {
         FLUSH_TRACES(gen)
         
         //a little faster with this
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int indiv_id = 0; indiv_id < nb_indivs_; ++indiv_id) {
             delete dna_mutator_array_[indiv_id];
             dna_mutator_array_[indiv_id] = nullptr;
         }
 
         if (AeTime::time() % backup_step_ == 0) {
-            save(AeTime::time());
+            //save(AeTime::time());
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
     }
-    cout<< "timing "<< staticSelectionTime<< " prep "<< staticPrepareTime<< " if " << staticIfTime << " m " << staticMTime;
     STOP_TRACER
 }
