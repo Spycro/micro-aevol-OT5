@@ -175,6 +175,8 @@ void Stats::compute_average(const std::shared_ptr<Organism> *population, int pop
     mean_nb_mut_ = 0;
     mean_nb_switch_ = 0;
 
+    //not worth it
+    //#pragma omp prallel for reduction(+:mean_fitness_,mean_metabolic_error_,mean_amount_of_dna_,mean_nb_coding_rnas_,mean_nb_non_coding_rnas_,mean_nb_functional_genes_,mean_nb_non_functional_genes_,mean_nb_mut_,mean_nb_switch_)
     for (int indiv_id = 0; indiv_id < pop_size_; indiv_id++) {
         const auto &organism = population[indiv_id];
         mean_fitness_ += organism->fitness;

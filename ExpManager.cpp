@@ -362,11 +362,18 @@ void ExpManager::prepare_mutation(int indiv_id)const{
     dna_mutator_array_[indiv_id]->generate_mutations();
 
     if (dna_mutator_array_[indiv_id]->hasMutate()) {
-        if(recycling->empty()){//Recycle that memory!
+        bool noRecycling;//Recycle that memory! But stay thread safe
+        #pragma omp critical
+        {
+            noRecycling = recycling->empty();
+            if(!noRecycling){
+                internal_organisms_[indiv_id] = recycling->back();
+                recycling->pop_back();
+            }
+        }
+        if(noRecycling){
             internal_organisms_[indiv_id] = std::make_shared<Organism>(parent);
         }else{
-            internal_organisms_[indiv_id] = recycling->back();
-            recycling->pop_back();
             *internal_organisms_[indiv_id] = *parent;
         }
     } else {
@@ -382,7 +389,7 @@ void ExpManager::prepare_mutation(int indiv_id)const{
  */
 void ExpManager::run_a_step() {
     //ce omp prallel for reduit bien le temps reel, le temps cpu augmente bcp
-    //#pragma omp parallel for
+    #pragma omp parallel for schedule(guided)
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         selection(indiv_id);
         prepare_mutation(indiv_id);
@@ -396,9 +403,15 @@ void ExpManager::run_a_step() {
     auto tempOrganisms = prev_internal_organisms_;
     prev_internal_organisms_ = internal_organisms_;
     internal_organisms_ = tempOrganisms;
+    #pragma omp parallel for schedule(guided)
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {//lets not let that memory go to waste, the system allocated it for you! Don't make it do it again
-        if(internal_organisms_[indiv_id].unique() && recycling->size()<recyclingLength){
-            recycling->push_back(internal_organisms_[indiv_id]);
+        if(internal_organisms_[indiv_id].unique()){
+            #pragma omp critical
+            {
+                if(recycling->size()<recyclingLength){
+                    recycling->push_back(internal_organisms_[indiv_id]);
+                }
+            }
         }
         internal_organisms_[indiv_id] = nullptr;
     }
@@ -422,7 +435,7 @@ void ExpManager::run_a_step() {
     stats_mean->reinit(AeTime::time());
 
     //a little faster when run in parallel
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         if (dna_mutator_array_[indiv_id]->hasMutate())
             prev_internal_organisms_[indiv_id]->compute_protein_stats();
@@ -445,7 +458,7 @@ void ExpManager::run_evolution(int nb_gen) {
     INIT_TRACER("trace.csv", {"FirstEvaluation", "STEP"});
 
     //TIMESTAMP(0, {
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         internal_organisms_[indiv_id]->locate_promoters();
         prev_internal_organisms_[indiv_id]->evaluate(target);
@@ -469,7 +482,7 @@ void ExpManager::run_evolution(int nb_gen) {
         FLUSH_TRACES(gen)
         
         //a little faster with this
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (int indiv_id = 0; indiv_id < nb_indivs_; ++indiv_id) {
             dna_mutator_array_[indiv_id]->reset();//Reset mutators instead of disturbing the system
         }
