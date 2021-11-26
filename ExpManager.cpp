@@ -125,8 +125,7 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
 
     // Create a population of clones based on the randomly generated organism
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        prev_internal_organisms_[indiv_id] = std::make_shared<Organism>(internal_organisms_[0]);
-        internal_organisms_[indiv_id] =  std::make_shared<Organism>(internal_organisms_[0]);
+        prev_internal_organisms_[indiv_id] = internal_organisms_[indiv_id] = std::make_shared<Organism>(internal_organisms_[0]);
     }
 
     // Create backup and stats directory
@@ -270,8 +269,7 @@ void ExpManager::load(int t) {
     }
 
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        prev_internal_organisms_[indiv_id] =std::make_shared<Organism>(exp_backup_file);
-        internal_organisms_[indiv_id] = std::make_shared<Organism>(exp_backup_file);
+        prev_internal_organisms_[indiv_id] = internal_organisms_[indiv_id] = std::make_shared<Organism>(exp_backup_file);
     }
 
     rng_ = std::move(std::make_unique<Threefry>(grid_width_, grid_height_, exp_backup_file));
@@ -352,27 +350,27 @@ void ExpManager::selection(int indiv_id) const {
  */
 void ExpManager::prepare_mutation(int indiv_id)const{
     //generation de la rng ??
-    auto *rng = new Threefry::Gen(std::move(rng_->gen(indiv_id, Threefry::MUTATION)));
     const shared_ptr<Organism> &parent = prev_internal_organisms_[next_generation_reproducer_[indiv_id]];
-    dna_mutator_array_[indiv_id] = new DnaMutator(
-            rng,
-            parent->length(),
-            mutation_rate_);
+    if(dna_mutator_array_[indiv_id] == nullptr){//Don't make one each cycle, most of the parameters stay the same
+        dna_mutator_array_[indiv_id] = new DnaMutator(
+                rng_.get(),
+                indiv_id,
+                Threefry::MUTATION,
+                parent->length(),
+                mutation_rate_);
+    }
     dna_mutator_array_[indiv_id]->generate_mutations();
 
     if (dna_mutator_array_[indiv_id]->hasMutate()) {
-        if(internal_organisms_[indiv_id].unique()){
-            *internal_organisms_[indiv_id] = *parent;
+        if(recycling->empty()){//Recycle that memory!
+            internal_organisms_[indiv_id] = std::make_shared<Organism>(parent);
         }else{
-                internal_organisms_[indiv_id] = recycling->back();
-                recycling->pop_back();
-                *internal_organisms_[indiv_id] = *parent;
+            internal_organisms_[indiv_id] = recycling->back();
+            recycling->pop_back();
+            *internal_organisms_[indiv_id] = *parent;
         }
     } else {
         int parent_id = next_generation_reproducer_[indiv_id];
-        if(internal_organisms_[indiv_id].unique() && recycling->size()<recyclingLength){
-            recycling->push_back(internal_organisms_[indiv_id]);
-        }
         internal_organisms_[indiv_id] = prev_internal_organisms_[parent_id];
         internal_organisms_[indiv_id]->reset_mutation_stats();
     }
@@ -398,6 +396,12 @@ void ExpManager::run_a_step() {
     auto tempOrganisms = prev_internal_organisms_;
     prev_internal_organisms_ = internal_organisms_;
     internal_organisms_ = tempOrganisms;
+    for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {//lets not let that memory go to waste, the system allocated it for you! Don't make it do it again
+        if(internal_organisms_[indiv_id].unique() && recycling->size()<recyclingLength){
+            recycling->push_back(internal_organisms_[indiv_id]);
+        }
+        internal_organisms_[indiv_id] = nullptr;
+    }
 
     // Search for the best
     double best_fitness = prev_internal_organisms_[0]->fitness;
@@ -467,14 +471,17 @@ void ExpManager::run_evolution(int nb_gen) {
         //a little faster with this
         //#pragma omp parallel for
         for (int indiv_id = 0; indiv_id < nb_indivs_; ++indiv_id) {
-            delete dna_mutator_array_[indiv_id];
-            dna_mutator_array_[indiv_id] = nullptr;
+            dna_mutator_array_[indiv_id]->reset();//Reset mutators instead of disturbing the system
         }
 
         if (AeTime::time() % backup_step_ == 0) {
             save(AeTime::time());
             cout << "Backup for generation " << AeTime::time() << " done !" << endl;
         }
+    }
+    for (int indiv_id = 0; indiv_id < nb_indivs_; ++indiv_id) {
+        delete dna_mutator_array_[indiv_id];
+        dna_mutator_array_[indiv_id] = nullptr;
     }
 
     std::cout<<"execTime: " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-startTime).count()<<std::endl;
