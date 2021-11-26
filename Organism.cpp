@@ -53,6 +53,44 @@ Organism::Organism(const std::shared_ptr<Organism> &clone) {
     promoters_ = clone->promoters_;
 }
 
+Organism& Organism::operator= (const Organism& clone){
+    
+    //clear old info
+    for (auto rna : rnas) {
+        delete (rna);
+    }
+    rnas.clear();
+
+    for (auto prot : proteins) {
+        delete (prot);
+    }
+    proteins.clear();
+    terminators.clear();
+    
+    
+    //phenotype[FUZZY_SAMPLING] ={};
+    //delta[FUZZY_SAMPLING] = {};
+
+    fitness = 0.0;
+    metaerror = 0.0;
+    protein_count_ = 0;
+    rna_count_ = 0;
+    nb_genes_activ = 0;
+    nb_genes_inhib = 0;
+    nb_func_genes = 0;
+    nb_non_func_genes = 0;
+    nb_coding_RNAs = 0;
+    nb_non_coding_RNAs = 0;
+    nb_swi_ = 0;
+    nb_mut_ = 0;
+
+    //fill new info
+    rna_count_ = 0;
+    *dna_ = *clone.dna_;
+    promoters_ = clone.promoters_;
+    return *this;
+}
+
 /**
  * Create an Organism from a backup/checkpointing file
  *
@@ -190,7 +228,7 @@ void Organism::compute_RNA() {
 
         bool terminator_found = false;
 
-        int mid_pos = dna_->length() - TERM_SIZE;
+        int mid_pos = dna_->length() - SECTION_SIZE;
 
         if(dna_->terminator_at(cur_pos)){
             terminator_found = true;
@@ -252,7 +290,7 @@ void Organism::search_start_protein() {
             c_pos += PROM_SIZE;
             loop_back(c_pos);
 
-            if(rna->end > c_pos && rna->end + SHINE_DAL_SIZE+CODON_SIZE + 4 < dna_->length()){//majority of calls go here (about 99.996%)
+            if(rna->end > c_pos && rna->end + SECTION_SIZE < dna_->length()){//majority of calls go here (about 99.996%)
                 if (dna_->shine_dal_start(c_pos)) {
                         rna->start_prot.push_back(c_pos);
                 }
@@ -698,7 +736,7 @@ void Organism::look_for_new_promoters_starting_between(int32_t pos_1, int32_t po
     }
     // Hamming distance of the sequence from the promoter consensus
 
-    int pos_m = min(pos_2,dna_->length()-SHINE_DAL_SIZE);
+    int pos_m = min(pos_2,dna_->length()-SECTION_SIZE);
     int8_t dist = dna_->promoter_at(pos_1);
     if(dist <= PROM_MAX_DIFF){
         add_new_promoter(pos_1,dist);

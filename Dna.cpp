@@ -14,6 +14,11 @@ Dna::Dna(int length, Threefry::Gen &&rng) : seq_(length) {
     }
 }
 
+Dna& Dna::operator=(const Dna& other){
+    seq_ = other.seq_;
+    return *this;
+}
+
 int Dna::length() const {
     return seq_.size();
 }
@@ -55,7 +60,7 @@ void Dna::do_switch(int pos) {
 int Dna::promoter_at(int pos) {
     char prom_dist[PROM_SIZE];
     
-    if((pos + PROM_SIZE)< length()){
+    if((pos + SECTION_SIZE)< length()){
         if(false){
             #pragma omp simd
             for (int motif_id = 0; motif_id < PROM_SIZE; motif_id++) {
@@ -126,7 +131,7 @@ bool Dna::terminator_at(int pos) {
             return true;
         }
     }else if(true){
-        if(pos + TERM_SIZE < length()){
+        if(pos + SECTION_SIZE < length()){
             return TERMINATOR_LOOKUP_TABLE[seq_.getAround(pos) & TERM_MASK_INT];
         }else{
             for(int i = 0;i<TERM_STEM_SIZE;++i){
@@ -170,7 +175,7 @@ bool Dna::shine_dal_start(int pos) {
     bool start = false;
     int t_pos, k_t;
 
-    if((pos + SHINE_DAL_SIZE+CODON_SIZE + 4 < length()) && true){
+    if((pos + SECTION_SIZE < length()) && true){
         return ((seq_.getAround(pos) ^ SHINE_DAL_SEQ_INT)&SHINE_DAL_MASK_INT) == 0;
     }else{
         for (int k = 0; k < SHINE_DAL_SIZE + CODON_SIZE; k++) {

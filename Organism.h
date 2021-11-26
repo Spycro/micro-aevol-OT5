@@ -49,6 +49,8 @@ public:
 
     explicit Organism(const std::shared_ptr<Organism> &clone);
 
+    Organism& operator=(const Organism& other);
+
     explicit Organism(gzFile backup_file);
 
     ~Organism();

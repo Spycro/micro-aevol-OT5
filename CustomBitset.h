@@ -10,6 +10,8 @@ public:
 
     CustomBitset(const CustomBitset &clone) = default;
 
+    CustomBitset& operator=(const CustomBitset& other);
+
     ~CustomBitset() = default;
 
     const unsigned int& size() const;

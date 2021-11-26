@@ -12,6 +12,18 @@ CustomBitset::CustomBitset(int size) : largeSet(size){
     internalSet = std::vector<uint32_t>(numberOfChunks);
 }
 
+CustomBitset& CustomBitset::operator=(const CustomBitset& other){
+    length = other.length;
+    chunkSize = other.chunkSize;
+    numberOfChunks = other.numberOfChunks;
+    internalSet = other.internalSet;
+    largeSet = other.largeSet;
+
+    posCache =-42;
+    bitsChanged= true;
+    return *this;
+}
+
 const unsigned int& CustomBitset::size() const {
     return length;
 }

@@ -62,6 +62,10 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
 
     nb_indivs_ = grid_height * grid_width;
 
+    recyclingLength = nb_indivs_;
+    recycling = new std::vector<std::shared_ptr<Organism>>;
+    recycling->reserve(recyclingLength);
+
     internal_organisms_ = new std::shared_ptr<Organism>[nb_indivs_];
     prev_internal_organisms_ = new std::shared_ptr<Organism>[nb_indivs_];
 
@@ -121,8 +125,8 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
 
     // Create a population of clones based on the randomly generated organism
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        prev_internal_organisms_[indiv_id] = internal_organisms_[indiv_id] =
-                std::make_shared<Organism>(internal_organisms_[0]);
+        prev_internal_organisms_[indiv_id] = std::make_shared<Organism>(internal_organisms_[0]);
+        internal_organisms_[indiv_id] =  std::make_shared<Organism>(internal_organisms_[0]);
     }
 
     // Create backup and stats directory
@@ -266,8 +270,8 @@ void ExpManager::load(int t) {
     }
 
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        prev_internal_organisms_[indiv_id] = internal_organisms_[indiv_id] =
-                std::make_shared<Organism>(exp_backup_file);
+        prev_internal_organisms_[indiv_id] =std::make_shared<Organism>(exp_backup_file);
+        internal_organisms_[indiv_id] = std::make_shared<Organism>(exp_backup_file);
     }
 
     rng_ = std::move(std::make_unique<Threefry>(grid_width_, grid_height_, exp_backup_file));
@@ -291,6 +295,8 @@ ExpManager::~ExpManager() {
     delete[] prev_internal_organisms_;
     delete[] next_generation_reproducer_;
     delete[] target;
+
+    delete recycling;
 }
 
 /**
@@ -344,7 +350,7 @@ void ExpManager::selection(int indiv_id) const {
  *
  * @param indiv_id : Organism unique id
  */
-void ExpManager::prepare_mutation(int indiv_id) const {
+void ExpManager::prepare_mutation(int indiv_id)const{
     //generation de la rng ??
     auto *rng = new Threefry::Gen(std::move(rng_->gen(indiv_id, Threefry::MUTATION)));
     const shared_ptr<Organism> &parent = prev_internal_organisms_[next_generation_reproducer_[indiv_id]];
@@ -355,10 +361,18 @@ void ExpManager::prepare_mutation(int indiv_id) const {
     dna_mutator_array_[indiv_id]->generate_mutations();
 
     if (dna_mutator_array_[indiv_id]->hasMutate()) {
-        internal_organisms_[indiv_id] = std::make_shared<Organism>(parent);
+        if(internal_organisms_[indiv_id].unique()){
+            *internal_organisms_[indiv_id] = *parent;
+        }else{
+                internal_organisms_[indiv_id] = recycling->back();
+                recycling->pop_back();
+                *internal_organisms_[indiv_id] = *parent;
+        }
     } else {
         int parent_id = next_generation_reproducer_[indiv_id];
-
+        if(internal_organisms_[indiv_id].unique() && recycling->size()<recyclingLength){
+            recycling->push_back(internal_organisms_[indiv_id]);
+        }
         internal_organisms_[indiv_id] = prev_internal_organisms_[parent_id];
         internal_organisms_[indiv_id]->reset_mutation_stats();
     }

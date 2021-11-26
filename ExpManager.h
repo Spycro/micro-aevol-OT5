@@ -60,7 +60,7 @@ public:
 private:
     void run_a_step();
 
-    void prepare_mutation(int indiv_id) const;
+    void prepare_mutation(int indiv_id)const;
 
     void selection(int indiv_id) const;
 
@@ -87,4 +87,7 @@ private:
     double mutation_rate_;
 
     int backup_step_;
+
+    std::vector<std::shared_ptr<Organism>>* recycling;
+    int recyclingLength;
 };

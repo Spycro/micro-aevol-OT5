@@ -21,6 +21,8 @@ public:
 
     Dna(int length, Threefry::Gen &&rng);
 
+    Dna& operator=(const Dna& other);
+
     ~Dna() = default;
 
     int length() const;

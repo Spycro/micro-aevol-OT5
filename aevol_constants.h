@@ -8,6 +8,7 @@
 
 constexpr int8_t NB_BASE = 2;
 constexpr int8_t CODON_SIZE = 3;
+constexpr uint8_t SECTION_SIZE = 32;
 // promoter
 constexpr int8_t PROM_MAX_DIFF = 4;
 constexpr int8_t PROM_SIZE = 22;
