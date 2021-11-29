@@ -1,11 +1,16 @@
 #include "Threefry.h"
 
 #include <cmath>
+#include <cstring>
 
-void Threefry::save(gzFile backup_file) const {
+void Threefry::save(uint8_t* buffer) const {
   Threefry123::key_type::value_type seed = seed_[1];
-  gzwrite(backup_file, &seed, sizeof(seed));
-  gzwrite(backup_file, counters_.data(), counters_.size() * sizeof(counters_[0]));
+  memcpy(buffer,&seed,sizeof(seed));
+  memcpy(&buffer[sizeof(seed)],counters_.data(),counters_.size()*sizeof(counters_[0]));
+}
+
+unsigned int Threefry::getSaveSize() const{
+  return sizeof(seed_[1]) + sizeof(counters_[0])* counters_.size();
 }
 
 Threefry::Threefry(int X, int Y, gzFile backup_file)

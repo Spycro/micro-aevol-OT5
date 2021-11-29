@@ -27,6 +27,7 @@
 #pragma once
 
 #include <memory>
+#include <thread>
 
 #include "Abstract_ExpManager.h"
 #include "Threefry.h"
@@ -90,4 +91,6 @@ private:
 
     std::vector<std::shared_ptr<Organism>>* recycling;
     int recyclingLength;
+
+    std::vector<std::thread>* diskThreads;
 };

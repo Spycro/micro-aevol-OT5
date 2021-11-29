@@ -67,6 +67,8 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
     recycling = new std::vector<std::shared_ptr<Organism>>;
     recycling->reserve(recyclingLength);
 
+    diskThreads = new std::vector<std::thread>;
+
     internal_organisms_ = new std::shared_ptr<Organism>[nb_indivs_];
     prev_internal_organisms_ = new std::shared_ptr<Organism>[nb_indivs_];
 
@@ -158,13 +160,22 @@ ExpManager::ExpManager(int time) {
 
 }
 
+void writeSavedDataToDisk(gzFile file, uint8_t* dataBuffer, unsigned int dataBufferLength, unsigned int generation){
+    gzwrite(file,dataBuffer,dataBufferLength);//this takes a lot of time, not much I can do about it
+
+    if (gzclose(file) != Z_OK) {
+        cerr << "Error while closing backup file" << endl;
+    }
+    std::cout<<"Backup finished for generation "<<generation<<std::endl;
+    delete[] dataBuffer;
+}
+
 /**
  * Checkpointing/Backup of the population of organisms
  *
  * @param t : simulated time of the checkpoint
  */
 void ExpManager::save(int t) const {
-
     char exp_backup_file_name[255];
 
     sprintf(exp_backup_file_name, "backup/backup_%d.zae", t);
@@ -200,24 +211,21 @@ void ExpManager::save(int t) const {
         gzwrite(exp_backup_file, &tmp, sizeof(tmp));
     }
 
+    unsigned int rngDataLength = rng_->getSaveSize();
     unsigned int individualDataSize =  (prev_internal_organisms_[0]->getSaveSize());
     unsigned int dnaDataBufferLength = nb_indivs_ * individualDataSize;
-    uint8_t * dnaDataBuffer = new uint8_t[dnaDataBufferLength];
+    uint8_t * mainDataBuffer = new uint8_t[dnaDataBufferLength + rngDataLength];
+    #pragma omp for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {//this took up most of the disk io
-        prev_internal_organisms_[indiv_id]->save(&dnaDataBuffer[indiv_id * individualDataSize]);
-    }
-    std::cout<<"writing dna to disk\n";
-    gzwrite(exp_backup_file,dnaDataBuffer,dnaDataBufferLength);
-    std::cout<<"done with dna to disk\n";
-
-    rng_->save(exp_backup_file);
-
-    if (gzclose(exp_backup_file) != Z_OK) {
-        cerr << "Error while closing backup file" << endl;
+        prev_internal_organisms_[indiv_id]->save(&mainDataBuffer[indiv_id * individualDataSize]);
     }
 
-    delete[] dnaDataBuffer;
+    rng_->save(&mainDataBuffer[dnaDataBufferLength]);
+
+    diskThreads->emplace_back(std::thread(writeSavedDataToDisk,exp_backup_file,mainDataBuffer,dnaDataBufferLength+rngDataLength,t));
 }
+
+
 
 /**
  * Loading a simulation from a checkpoint/backup file
@@ -302,6 +310,7 @@ ExpManager::~ExpManager() {
     delete[] target;
 
     delete recycling;
+    delete diskThreads;
 }
 
 /**
@@ -496,7 +505,7 @@ void ExpManager::run_evolution(int nb_gen) {
 
         if (AeTime::time() % backup_step_ == 0) {
             save(AeTime::time());
-            cout << "Backup for generation " << AeTime::time() << " done !" << endl;
+            cout << "Backup for generation " << AeTime::time() << " started !" << endl;
         }
     }
     for (int indiv_id = 0; indiv_id < nb_indivs_; ++indiv_id) {
@@ -505,5 +514,9 @@ void ExpManager::run_evolution(int nb_gen) {
     }
 
     std::cout<<"execTime: " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-startTime).count()<<std::endl;
+    std::cout<<"Waiting for threads to close"<< std::endl;
+    for(std::thread &t : (*diskThreads)){
+        t.join();
+    }
     STOP_TRACER
 }

@@ -99,7 +99,9 @@ public:
         return std::move(Gen(this, idx, phase));
     }
 
-    void save(gzFile backup_file) const;
+    void save(uint8_t* buffer) const;
+
+    unsigned int getSaveSize() const;
 
     class Device;
 
