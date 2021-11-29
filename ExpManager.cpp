@@ -27,6 +27,7 @@
 
 
 #include <iostream>
+#include <cstring>
 #include <zlib.h>
 #include <omp.h>
 #include <chrono>
@@ -173,7 +174,6 @@ void ExpManager::save(int t) const {
     // -------------------------------------------------------------------------
     gzFile exp_backup_file = gzopen(exp_backup_file_name, "w");
 
-
     // -------------------------------------------------------------------------
     // Check that files were correctly opened
     // -------------------------------------------------------------------------
@@ -188,7 +188,6 @@ void ExpManager::save(int t) const {
     // Write the backup file
     // -------------------------------------------------------------------------
     gzwrite(exp_backup_file, &t, sizeof(t));
-
     gzwrite(exp_backup_file, &grid_height_, sizeof(grid_height_));
     gzwrite(exp_backup_file, &grid_width_, sizeof(grid_width_));
 
@@ -201,15 +200,22 @@ void ExpManager::save(int t) const {
         gzwrite(exp_backup_file, &tmp, sizeof(tmp));
     }
 
-    for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
-        prev_internal_organisms_[indiv_id]->save(exp_backup_file);
+    unsigned int individualDataSize =  (prev_internal_organisms_[0]->getSaveSize());
+    unsigned int dnaDataBufferLength = nb_indivs_ * individualDataSize;
+    uint8_t * dnaDataBuffer = new uint8_t[dnaDataBufferLength];
+    for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {//this took up most of the disk io
+        prev_internal_organisms_[indiv_id]->save(&dnaDataBuffer[indiv_id * individualDataSize]);
     }
+    std::cout<<"writing to disk\n";
+    gzwrite(exp_backup_file,dnaDataBuffer,dnaDataBufferLength);
 
     rng_->save(exp_backup_file);
 
     if (gzclose(exp_backup_file) != Z_OK) {
         cerr << "Error while closing backup file" << endl;
     }
+
+    delete[] dnaDataBuffer;
 }
 
 /**

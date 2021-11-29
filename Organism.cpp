@@ -126,8 +126,12 @@ Organism::~Organism() {
  *
  * @param backup_file : where to the save the organism
  */
-void Organism::save(gzFile backup_file) const {
-    dna_->save(backup_file);
+void Organism::save(uint8_t *buffer) const {
+    dna_->save(buffer);
+}
+
+unsigned int Organism::getSaveSize()const{
+    return dna_->getSaveSize();
 }
 
 /**

@@ -27,7 +27,9 @@ public:
 
     int length() const;
 
-    void save(gzFile backup_file);
+    void save(uint8_t *buffer) const;
+
+    unsigned int getSaveSize() const;
 
     void load(gzFile backup_file);
 
