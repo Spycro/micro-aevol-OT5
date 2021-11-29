@@ -206,8 +206,9 @@ void ExpManager::save(int t) const {
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {//this took up most of the disk io
         prev_internal_organisms_[indiv_id]->save(&dnaDataBuffer[indiv_id * individualDataSize]);
     }
-    std::cout<<"writing to disk\n";
+    std::cout<<"writing dna to disk\n";
     gzwrite(exp_backup_file,dnaDataBuffer,dnaDataBufferLength);
+    std::cout<<"done with dna to disk\n";
 
     rng_->save(exp_backup_file);
 
