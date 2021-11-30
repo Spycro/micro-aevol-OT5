@@ -107,6 +107,13 @@ ExpManager::ExpManager(int grid_height, int grid_width, int seed, double mutatio
     while (r_compare >= 0) {
         auto random_organism = std::make_shared<Organism>(init_length_dna, rng_->gen(0, Threefry::MUTATION));
         random_organism->locate_promoters();
+        random_organism->locate_shine_dalgarnos();
+        std::cout << "Random organism :" << std::endl;
+        for (int const& ind_sd : random_organism->shine_dalgarno)
+        {
+            std::cout << ind_sd << ", ";
+        }
+        std::cout << "" << std::endl;
         random_organism->evaluate(target);
         internal_organisms_[0] = random_organism;
 
@@ -423,6 +430,14 @@ void ExpManager::run_evolution(int nb_gen) {
     #pragma omp parallel for
     for (int indiv_id = 0; indiv_id < nb_indivs_; indiv_id++) {
         internal_organisms_[indiv_id]->locate_promoters();
+        cout << "1st Gen organism :" << std::endl;
+        for (int const& ind_sd : internal_organisms_[indiv_id]->shine_dalgarno)
+        {
+            std::cout << ind_sd << ", ";
+        }
+        internal_organisms_[indiv_id]->locate_shine_dalgarnos();
+        
+        cout << "" << std::endl;
         prev_internal_organisms_[indiv_id]->evaluate(target);
         prev_internal_organisms_[indiv_id]->compute_protein_stats();
     }

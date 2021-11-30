@@ -51,6 +51,7 @@ Organism::Organism(const std::shared_ptr<Organism> &clone) {
     rna_count_ = 0;
     dna_ = new Dna(*(clone->dna_));
     promoters_ = clone->promoters_;
+    shine_dalgarno = clone->shine_dalgarno;
 }
 
 /**
@@ -611,10 +612,13 @@ bool Organism::do_switch(int pos) {
 
     // Remove promoters containing the switched base
     remove_promoters_around(pos, mod(pos + 1, length()));
+    remove_shine_dalgarno_around(pos, mod(pos + 1, length()));
 
     // Look for potential new promoters containing the switched base
-    if (length() >= PROM_SIZE)
+    if (length() >= PROM_SIZE) {
         look_for_new_promoters_around(pos, mod(pos + 1, length()));
+        look_for_new_shine_dalgarno_around(pos, mod(pos + 1, length()));
+    }
 
     return true;
 }
@@ -786,12 +790,13 @@ void Organism::remove_shine_dalgarno_starting_before(int32_t pos) {
 
 void Organism::add_new_shine_dalgarno(int32_t position) {
     shine_dalgarno.insert(position);
+}
 
 void Organism::look_for_new_shine_dalgarno_starting_between(int32_t pos_1, int32_t pos_2) {
     // When pos_1 > pos_2, we will perform the search in 2 steps.
     // As positions  0 and dna_->length() are equivalent, it's preferable to
     // keep 0 for pos_1 and dna_->length() for pos_2.
-
+    std::cout << "là ";
     if (pos_1 >= pos_2) {
         look_for_new_shine_dalgarno_starting_after(pos_1);
         look_for_new_shine_dalgarno_starting_before(pos_2);

@@ -78,6 +78,7 @@ public:
     // Map position (int) to Promoter
     std::map<int, ErrorType> promoters_;
 
+    std::set<int> terminators;
     std::set<int> shine_dalgarno;
     std::vector<RNA *> rnas;
     std::vector<Protein *> proteins;
