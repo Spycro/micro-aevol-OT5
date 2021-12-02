@@ -70,6 +70,7 @@ public:
     void locate_shine_dalgarnos();
 
     void evaluate(const double* target);
+    void evaluate_init(const double* target);
 
     // Printings
     void print_info();

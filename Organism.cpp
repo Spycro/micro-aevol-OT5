@@ -178,6 +178,15 @@ void Organism::evaluate(const double *target) {
     compute_fitness(target);
 }
 
+void Organism::evaluate_init(const double *target) {
+    compute_RNA();
+    search_start_protein_init();
+    compute_protein();
+    translate_protein();
+    compute_phenotype();
+    compute_fitness(target);
+}
+
 void Organism::compute_RNA() {
     proteins.clear();
     rnas.clear();
@@ -268,12 +277,21 @@ void Organism::search_start_protein() {
 
             auto lb = shine_dalgarno.lower_bound(c_pos);
             auto ub = shine_dalgarno.upper_bound(rna->end);
-            std::cout << "start : " << *lb << " and end : " << *ub << std::endl;
-            for (auto it = lb; lb != ub; it++) {
-                rna->start_prot.push_back(*it);
-                //std::cout << *it << ", ";
+
+
+            if(rna->end < c_pos) {
+                for (auto it = lb; it != shine_dalgarno.end(); it++) {
+                    rna->start_prot.push_back(*it);
+                }
+                for (auto it = shine_dalgarno.begin(); it != ub; it++) {
+                    rna->start_prot.push_back(*it);
+                }
+            } else {
+                for (auto it = lb; it != ub; it++) {
+                    rna->start_prot.push_back(*it);
+                }
             }
-            std::cout << "fin" << std::endl;
+            
         }
     }
 }
@@ -798,7 +816,6 @@ void Organism::look_for_new_shine_dalgarno_starting_between(int32_t pos_1, int32
     // When pos_1 > pos_2, we will perform the search in 2 steps.
     // As positions  0 and dna_->length() are equivalent, it's preferable to
     // keep 0 for pos_1 and dna_->length() for pos_2.
-    std::cout << "là ";
     if (pos_1 >= pos_2) {
         look_for_new_shine_dalgarno_starting_after(pos_1);
         look_for_new_shine_dalgarno_starting_before(pos_2);
