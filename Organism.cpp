@@ -268,10 +268,12 @@ void Organism::search_start_protein() {
 
             auto lb = shine_dalgarno.lower_bound(c_pos);
             auto ub = shine_dalgarno.upper_bound(rna->end);
-
+            std::cout << "start : " << *lb << " and end : " << *ub << std::endl;
             for (auto it = lb; lb != ub; it++) {
                 rna->start_prot.push_back(*it);
+                //std::cout << *it << ", ";
             }
+            std::cout << "fin" << std::endl;
         }
     }
 }
