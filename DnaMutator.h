@@ -39,7 +39,15 @@
 class DnaMutator {
 public:
 
-    DnaMutator(Threefry::Gen *mut_prng, int length, double mutation_rate);
+    DnaMutator(Threefry *parent, size_t idx, Threefry::Phase phase, int length, double mutation_rate);//Lets make this more readable
+
+    void reset(){//Reset instead of deleting and recreating, an obvious choice
+        for (auto repl : mutation_list_) {
+            delete repl;
+        }
+        mutation_list_.clear();
+        mut_prng_->reset(idx_,phase_);
+    }
 
     ~DnaMutator() {
         for (auto repl : mutation_list_) {
@@ -68,5 +76,9 @@ public:
     //--------------------------- Mutation counters
     int nb_mut_{};
     bool hasMutate_ = false;
+
+
+
+    size_t idx_; Threefry::Phase phase_;
 };
 

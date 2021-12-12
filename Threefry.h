@@ -7,7 +7,6 @@
 #include <vector>
 #include <utility>
 #include <cfloat>
-
 class Threefry {
 public:
     typedef r123::Threefry2x64_R<20> Threefry123;
@@ -33,11 +32,7 @@ public:
 
         Threefry *parent_;
 
-        Gen(Threefry *parent, size_t idx, Phase phase)
-                : parent_(parent) {
-            state_[0] = idx + parent_->N_ * phase;
-            state_[1] = parent_->counters_[state_[0]];
-        }
+        
 
         Gen(Threefry *parent, int x, int y, Phase phase)
                 : Gen(parent, y * parent_->X_ + x, phase) {}
@@ -45,10 +40,20 @@ public:
         friend class Threefry;
 
     public:
+        Gen(Threefry *parent, size_t idx, Phase phase)
+                : parent_(parent) {
+            state_[0] = idx + parent_->N_ * phase;
+            state_[1] = parent_->counters_[state_[0]];
+        }
 
-        Gen(const Gen &) = delete;
+        void reset(size_t idx, Phase phase){
+            parent_->counters_[state_[0]] = state_[1];
+            state_[0] = idx + parent_->N_ * phase;
+            state_[1] = parent_->counters_[state_[0]];
+        }
+        //Gen(const Gen &) = delete;
 
-        Gen &operator=(const Gen &) = delete;
+        //Gen &operator=(const Gen &) = delete;
 
         Gen(Gen &&other) {
             parent_ = other.parent_;
@@ -94,7 +99,9 @@ public:
         return std::move(Gen(this, idx, phase));
     }
 
-    void save(gzFile backup_file) const;
+    void save(uint8_t* buffer) const;
+
+    unsigned int getSaveSize() const;
 
     class Device;
 

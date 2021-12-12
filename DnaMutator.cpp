@@ -35,8 +35,10 @@
  * @param length  : Size of the DNA at the initialization
  * @param mutation_rate : Mutation rate of the organisms
  */
-DnaMutator::DnaMutator(Threefry::Gen *mut_prng, int length, double mutation_rate) {
-    mut_prng_ = mut_prng;
+DnaMutator::DnaMutator(Threefry *parent, size_t idx, Threefry::Phase phase, int length, double mutation_rate) {
+    idx_= idx;
+    phase_=phase;
+    mut_prng_ = new Threefry::Gen(parent,idx,Threefry::MUTATION);//There we go, things are a little more readable and logical.
     length_ = length;
     mutation_rate_ = mutation_rate;
 }

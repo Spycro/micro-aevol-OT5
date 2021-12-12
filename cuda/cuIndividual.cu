@@ -25,8 +25,17 @@ __device__ void cuIndividual::search_patterns() {
 __device__ void cuIndividual::sparse_meta() {
     // One block per individual
     uint idx = threadIdx.x;
+    // On s'amuse avec tt les threads pls pas que 3/32
+    prepare_rnas();
+    __syncthreads();
 
-    if (idx == 0) {
+    nb_terminator = sparse(size, terminators);
+    __syncthreads();
+
+    nb_prot_start = sparse(size, prot_start);
+    __syncthreads();
+
+    /*if (idx % 3 == 0) {
         prepare_rnas();
     }
     if (idx == 1) {
@@ -34,7 +43,7 @@ __device__ void cuIndividual::sparse_meta() {
     }
     if (idx == 2) {
         nb_prot_start = sparse(size, prot_start);
-    }
+    }*/
 }
 
 __device__ void cuIndividual::transcription() {
@@ -90,9 +99,10 @@ __device__ void cuIndividual::clean_metadata() {
 
 __device__ void cuIndividual::prepare_rnas() {
     // One thread working alone
+    // new: thread multiple de 3 jouant ensemble, jusqua 30
     int insert_position = 0;
-
-    for (uint read_position = 0; read_position < size; ++read_position) {
+    auto idx = threadIdx.x;
+    for (uint read_position = idx; read_position < size; read_position+=32) {
         uint8_t read_value = promoters[read_position];
         if (read_value <= PROM_MAX_DIFF) {
             auto &rna = list_rnas[insert_position];

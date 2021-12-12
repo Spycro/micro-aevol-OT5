@@ -72,8 +72,20 @@ void print_help(char* prog_path) {
     printf("  -r, --resume RESUME_STEP\tResume the simulation from the RESUME_STEP generations\n");
     printf("  -s, --seed SEED\tChange the seed for the pseudo random generator\n");
 }
-
+bool TERMINATOR_LOOKUP_TABLE[2048];
 int main(int argc, char* argv[]) {
+    //fill lookup table
+    for(int i = 0 ; i< 2048;++i){
+        TERMINATOR_LOOKUP_TABLE[i] = false;
+    }
+    for(unsigned int i = 0 ; i< 16;++i){
+        std::bitset<11> palindrome{i};
+        palindrome = palindrome<<7;
+        for(int p = 0; p< 4;++p){
+            palindrome[p] = !palindrome[10 - p];
+        }
+        TERMINATOR_LOOKUP_TABLE[palindrome.to_ulong()] = true;
+    }
 
     int nbstep = -1;
     int width = -1;

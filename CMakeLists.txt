@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(DO_TRACES OFF CACHE BOOL "Whether to enable the Traces library")
 set(USE_OMP OFF CACHE BOOL "Whether to enable OpenMP parallelization")
 set(USE_CUDA OFF CACHE BOOL "Whether to enable CUDA parallelization")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -ftree-vectorize -march=native -mtune=native -mavx2 -fopt-info-vec") 
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -ftree-vectorize -march=native -mtune=native -mavx2 -fopt-info-vec") 
 if ( DO_TRACES )
     add_definitions(-DTRACES)
     message( STATUS "Traces are activated" )
@@ -44,7 +44,8 @@ add_library(micro_aevol
         Organism.cpp
         Stats.cpp
         Threefry.cpp
-        Dna.cpp)
+        Dna.cpp
+        CustomBitset.cpp)
 
 target_link_libraries(micro_aevol PUBLIC ZLIB::ZLIB)
 

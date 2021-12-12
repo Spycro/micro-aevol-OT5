@@ -12,7 +12,7 @@ template <typename T>
 __device__ int sparse(int size, T* sparse_collection){
   int insert_position = 0;
 
-  for (int read_position = 0; read_position < size; ++read_position) {
+  for (int read_position = threadIdx.x; read_position < size; read_position+=32) {
     auto read_value = sparse_collection[read_position];
     if (read_value) {
       sparse_collection[insert_position] = read_position;

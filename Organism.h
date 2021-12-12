@@ -49,11 +49,15 @@ public:
 
     explicit Organism(const std::shared_ptr<Organism> &clone);
 
+    Organism& operator=(const Organism& other);
+
     explicit Organism(gzFile backup_file);
 
     ~Organism();
 
-    void save(gzFile backup_file) const;
+    void save(uint8_t *buffer) const;
+
+    unsigned int getSaveSize() const;
 
     void load(gzFile backup_file);
 

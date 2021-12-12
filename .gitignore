@@ -2,3 +2,11 @@
 *build*
 
 experiments/
+jupyter/backup
+jupyter/stats
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+jupyter/
+*.png
+*.csv

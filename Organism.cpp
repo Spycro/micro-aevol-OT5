@@ -53,6 +53,44 @@ Organism::Organism(const std::shared_ptr<Organism> &clone) {
     promoters_ = clone->promoters_;
 }
 
+Organism& Organism::operator= (const Organism& clone){
+    
+    //clear old info
+    for (auto rna : rnas) {
+        delete (rna);
+    }
+    rnas.clear();
+
+    for (auto prot : proteins) {
+        delete (prot);
+    }
+    proteins.clear();
+    terminators.clear();
+    
+    
+    //phenotype[FUZZY_SAMPLING] ={};
+    //delta[FUZZY_SAMPLING] = {};
+
+    fitness = 0.0;
+    metaerror = 0.0;
+    protein_count_ = 0;
+    rna_count_ = 0;
+    nb_genes_activ = 0;
+    nb_genes_inhib = 0;
+    nb_func_genes = 0;
+    nb_non_func_genes = 0;
+    nb_coding_RNAs = 0;
+    nb_non_coding_RNAs = 0;
+    nb_swi_ = 0;
+    nb_mut_ = 0;
+
+    //fill new info
+    rna_count_ = 0;
+    *dna_ = *clone.dna_;
+    promoters_ = clone.promoters_;
+    return *this;
+}
+
 /**
  * Create an Organism from a backup/checkpointing file
  *
@@ -88,8 +126,12 @@ Organism::~Organism() {
  *
  * @param backup_file : where to the save the organism
  */
-void Organism::save(gzFile backup_file) const {
-    dna_->save(backup_file);
+void Organism::save(uint8_t *buffer) const {
+    dna_->save(buffer);
+}
+
+unsigned int Organism::getSaveSize()const{
+    return dna_->getSaveSize();
 }
 
 /**
@@ -190,10 +232,23 @@ void Organism::compute_RNA() {
 
         bool terminator_found = false;
 
-        while (!terminator_found) {
-            int term_dist_leading = dna_->terminator_at(cur_pos);
+        int mid_pos = dna_->length() - SECTION_SIZE;
 
-            if (term_dist_leading == TERM_STEM_SIZE)
+        if(dna_->terminator_at(cur_pos)){
+            terminator_found = true;
+        }
+
+        if(!terminator_found){
+            for(++cur_pos;cur_pos<mid_pos;++cur_pos){ //terminator is found in this loop about 93.7% of the time
+                if(dna_->terminator_at_shift(cur_pos)){
+                    terminator_found = true;
+                    break;
+                }
+            }
+        }
+
+        while (!terminator_found) {
+            if (dna_->terminator_at(cur_pos))
                 terminator_found = true;
             else {
                 cur_pos++;
@@ -239,14 +294,29 @@ void Organism::search_start_protein() {
             c_pos += PROM_SIZE;
             loop_back(c_pos);
 
-            while (c_pos != rna->end) {
+            if(rna->end > c_pos && rna->end + SECTION_SIZE < dna_->length()){//majority of calls go here (about 99.996%)
                 if (dna_->shine_dal_start(c_pos)) {
-                    rna->start_prot.push_back(c_pos);
+                        rna->start_prot.push_back(c_pos);
                 }
-
                 c_pos++;
-                loop_back(c_pos);
+                while (c_pos != rna->end) {
+                    if (dna_->shine_dal_start_shift(c_pos)) {
+                        rna->start_prot.push_back(c_pos);
+                    }
+
+                    c_pos++;
+                }
+            }else{//Very few calls go here, not worth changing
+                while (c_pos != rna->end) {
+                    if (dna_->shine_dal_start(c_pos)) {
+                        rna->start_prot.push_back(c_pos);
+                    }
+
+                    c_pos++;
+                    loop_back(c_pos);
+                }
             }
+            
         }
     }
 }
@@ -663,20 +733,32 @@ void Organism::look_for_new_promoters_starting_between(int32_t pos_1, int32_t po
     // As positions  0 and dna_->length() are equivalent, it's preferable to
     // keep 0 for pos_1 and dna_->length() for pos_2.
 
-    if (pos_1 >= pos_2) {
+    if (pos_1 >= pos_2) {//This only happens about 0.0439% of the time, not worth changing
         look_for_new_promoters_starting_after(pos_1);
         look_for_new_promoters_starting_before(pos_2);
         return;
     }
     // Hamming distance of the sequence from the promoter consensus
 
-    for (int32_t i = pos_1; i < pos_2; i++) {
-        int8_t dist = dna_->promoter_at(i);
-
+    int pos_m = min(pos_2,dna_->length()-SECTION_SIZE);
+    int8_t dist = dna_->promoter_at(pos_1);
+    if(dist <= PROM_MAX_DIFF){
+        add_new_promoter(pos_1,dist);
+    }
+    for (int32_t i = pos_1 +1; i < pos_m; i++) {
+        dist = dna_->promoter_at_shift(i);
         if (dist <= PROM_MAX_DIFF) { // dist takes the hamming distance of the sequence from the consensus
             add_new_promoter(i, dist);
         }
     }
+
+    for (int32_t i = pos_m; i < pos_2; i++) {
+        dist = dna_->promoter_at(i);
+        if (dist <= PROM_MAX_DIFF) { // dist takes the hamming distance of the sequence from the consensus
+            add_new_promoter(i, dist);
+        }
+    }
+    
 }
 
 void Organism::look_for_new_promoters_starting_after(int32_t pos) {
