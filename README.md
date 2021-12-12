@@ -27,10 +27,10 @@ The compilation is straightforward
 ```
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_OMP=on
 make
 ```
-It will produced the executable micro_aevol_cpu.
+It will produced the executable micro_aevol_cpu. This will be in release mode and use omp,avx2 etc (see makefile).
 
 If CUDA toolkit is available on your system, you can build the software with GPU support
 ```
